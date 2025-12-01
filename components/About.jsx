@@ -27,7 +27,7 @@ export default function About() {
               {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="#d4af37" />)}
             </div>
             <p className="italic text-slate-700 mb-4">
-              "I didn't realize how much stress I was carrying until I walked into my home after LuxeShine had been there. It felt like a hotel."
+              "I didn't realize how much stress I was carrying until I walked into my home after Elite Polish had been there. It felt like a hotel."
             </p>
             <p className="font-bold text-[#0f172a]">– Sarah Jenkins, Homeowner</p>
           </div>
