@@ -10,7 +10,7 @@ export default function Hero() {
     {/* Dark Overlay for Text Readability */}
     <div className="absolute inset-0 bg-black/60 -z-10" />
 
-    <div className="relative text-center text-white px-4 max-w-4xl mx-auto">
+    <div className="relative text-center text-white px-4 max-w-4xl mx-auto bg-gray-800 opacity-75">
       <h1 className="font-serif text-5xl md:text-7xl mb-6 leading-tight">
         Experience Clean and Fresh Spaces 
         {/* <span className="text-[#d4af37] italic">Art Form</span>. */}
