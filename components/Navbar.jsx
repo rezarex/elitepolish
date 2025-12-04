@@ -11,7 +11,9 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-[#F0FFFF] opacity-50 text-gray-800 shadow-lg font-sans">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-    <Image src="/logo.png" alt="Logo" width={60} height={20} />
+        <Link href="/" className="hover:text-[#d4af37] transition">
+          <Image  src="/logo.png" alt="Logo" width={60} height={20} />
+        </Link>
 
         {/* Desktop Links */}
         <div className="hidden md:flex gap-8 text-sm tracking-wide">
