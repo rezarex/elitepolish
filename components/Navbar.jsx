@@ -17,7 +17,7 @@ export default function Navbar() {
         <div className="hidden md:flex gap-8 text-sm tracking-wide">
           <Link href="#services" className="hover:text-[#d4af37] transition">ABOUT</Link>
           <Link href="#about" className="hover:text-[#d4af37] transition">SERVICES</Link>
-          <Link href="#reviews" className="hover:text-[#d4af37] transition">CONTRACT</Link>
+          <Link href="/contact" className="hover:text-[#d4af37] transition">CONTACT</Link>
         </div>
 
         {/* CTA Button */}
