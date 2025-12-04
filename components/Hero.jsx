@@ -1,4 +1,5 @@
-
+import Link from 'next/link';
+import React from 'react';
 
 export default function Hero() {
   return (
@@ -18,9 +19,12 @@ export default function Hero() {
         Welcome to Elite Home and Business Cleaning, your trusted partner in transforming your space into a clean, fresh, and healthy environment for you, your family, or your employees.
       </p>
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <button className="bg-[#d4af37] hover:bg-[#b5952f] text-white px-8 py-4 rounded-sm font-bold tracking-wide transition shadow-lg">
+
+        <Link href="/schedule" passHref className="bg-[#d4af37] hover:bg-[#b5952f] text-white px-8 py-4 rounded-sm font-bold tracking-wide transition shadow-lg">
+
           SCHEDULE CLEANING
-        </button>
+
+        </Link>
         <button className="bg-white/10 backdrop-blur-md hover:bg-white hover:text-slate-900 border border-white text-white px-8 py-4 rounded-sm font-bold tracking-wide transition">
           VIEW SERVICES
         </button>

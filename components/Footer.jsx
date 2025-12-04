@@ -15,7 +15,7 @@ export default function Footer() {
           <h4 className="font-bold text-lg mb-4">Contact</h4>
           <div className="space-y-3 text-gray-400 text-sm">
             <p className="flex items-center gap-2"><Phone size={16} /> (555) 123-4567</p>
-            <p className="flex items-center gap-2"><Mail size={16} /> concierge@luxeshine.com</p>
+            <p className="flex items-center gap-2"><Mail size={16} /> concierge@elitepolish.ca</p>
             <p className="flex items-center gap-2"><MapPin size={16} /> Toronto, ON</p>
           </div>
         </div>

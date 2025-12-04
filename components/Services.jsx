@@ -7,7 +7,7 @@ export default function Services() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <span className="text-[#d4af37] font-bold tracking-widest text-sm uppercase">Our Expertise</span>
-          <h2 className="font-serif text-4xl md:text-5xl text-[#0f172a] mt-3">The Signature Collections</h2>
+          <h2 className="font-serif text-4xl md:text-5xl text-[#0f172a] mt-3">What we offer</h2>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
