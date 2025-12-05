@@ -20,6 +20,7 @@ export default function Navbar() {
           <Link href="/gallery" className="hover:text-[#d4af37] transition">GALLERY</Link>
           <Link href="/services" className="hover:text-[#d4af37] transition">SERVICES</Link>
           <Link href="/contact" className="hover:text-[#d4af37] transition">CONTACT</Link>
+          <Link href="/blog" className="hover:text-[#d4af37] transition">BLOG</Link>
         </div>
 
         {/* CTA Button */}

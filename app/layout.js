@@ -2,6 +2,7 @@ import { Playfair_Display, Lato } from 'next/font/google';
 import './globals.css';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import LiveChatButton from '../components/LiveChatButton';
 
 const playfair = Playfair_Display({ 
   subsets: ['latin'], 
@@ -28,6 +29,7 @@ export default function RootLayout({ children }) {
         <Navbar />
         {children}
         <Footer />
+        <LiveChatButton /> 
       </body>
     </html>
   );
