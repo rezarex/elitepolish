@@ -3,6 +3,7 @@ import './globals.css';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LiveChatButton from '../components/LiveChatButton';
+import FloatingReviews from '../components/FloatingReviews';
 
 const playfair = Playfair_Display({ 
   subsets: ['latin'], 
@@ -30,6 +31,7 @@ export default function RootLayout({ children }) {
         {children}
         <Footer />
         <LiveChatButton /> 
+        <FloatingReviews/>
       </body>
     </html>
   );
