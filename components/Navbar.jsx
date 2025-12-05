@@ -17,14 +17,14 @@ export default function Navbar() {
 
         {/* Desktop Links */}
         <div className="hidden md:flex gap-8 text-sm tracking-wide">
-          <Link href="#services" className="hover:text-[#d4af37] transition">ABOUT</Link>
-          <Link href="#about" className="hover:text-[#d4af37] transition">SERVICES</Link>
+          <Link href="/gallery" className="hover:text-[#d4af37] transition">GALLERY</Link>
+          <Link href="/services" className="hover:text-[#d4af37] transition">SERVICES</Link>
           <Link href="/contact" className="hover:text-[#d4af37] transition">CONTACT</Link>
         </div>
 
         {/* CTA Button */}
         <button className="hidden md:block border border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-white px-6 py-2 rounded-sm text-sm font-semibold transition duration-300">
-          SCEDULE CLEANING
+          SCHEDULE CLEANING
         </button>
 
         {/* Mobile Menu Icon */}
