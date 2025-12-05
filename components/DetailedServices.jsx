@@ -39,6 +39,11 @@ export default function DetailedServiceList() {
         </p>
       </div>
 
+      {/*
+      
+          TODO: Add Images
+      */}
+
       <div className="space-y-12">
         {detailedServices.map((service) => (
           <div key={service.key} className="bg-white p-8 lg:p-10 shadow-xl rounded-lg grid md:grid-cols-3 gap-8 items-start border-l-4 border-[#0f172a] hover:shadow-2xl transition duration-300">
@@ -57,13 +62,13 @@ export default function DetailedServiceList() {
                 <p className="text-xl font-semibold text-[#0f172a]">{service.duration}</p>
               </div>
 
-              <div>
+              {/* <div>
                 <div className="flex items-center text-[#d4af37] mb-2">
                   <DollarSign size={20} className="mr-2" />
                   <span className="font-bold text-sm uppercase tracking-wider">Cost</span>
                 </div>
-                <p className="text-xl font-semibold text-[#0f172a]">{service.cost}</p>
-              </div>
+                <p className="text-xl font-semibold text-[#0f172a]">{service.cost}</p> 
+              </div> */}
             </div>
           </div>
         ))}
