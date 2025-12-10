@@ -41,15 +41,15 @@ export default function AdminDashboardOverview() {
           <h3 className="text-xl font-serif text-[#0f172a] mb-4">Recent Bookings (Last 3)</h3>
           <ul className="space-y-3 text-gray-700">
             <li className="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
-                <span>Sanctuary Retreat - M. Davis</span>
+                <span>Residential Cleaning - M. Davis</span>
                 <span className="text-sm font-medium text-green-600">Pending</span>
             </li>
             <li className="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
-                <span>Diamond Restoration - S. Chen</span>
+                <span>Office Cleaning - S. Chen</span>
                 <span className="text-sm font-medium text-blue-600">Confirmed</span>
             </li>
             <li className="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
-                <span>Effortless Transition - J. Patel</span>
+                <span>Specialty Cleaning- J. Patel</span>
                 <span className="text-sm font-medium text-red-600">Canceled</span>
             </li>
           </ul>
