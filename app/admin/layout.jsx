@@ -2,21 +2,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { LayoutDashboard, Users, Calendar, Settings, Search, Edit, CheckCircle, XCircle, Clock, Loader2, MessageSquare, Star, Trash2, Rss, PlusCircle, PenTool, Eye, Zap, Save, ChevronLeft } from 'lucide-react';
 import AdminDashboardOverview from './page';
-
+import Booking from './Booking';
+import { API_BASE_URL } from '@/config/config';
 // --- CONFIGURATION & MOCK DATA ---
-const API_BASE_URL = 'http://localhost:3000'; 
-const BOOKINGS_API = `${API_BASE_URL}/api/bookings`; // Keeping APIs defined for future integration
-const REVIEWS_API = `${API_BASE_URL}/api/reviews`; 
-const CHAT_API = `${API_BASE_URL}/api/livechat`; 
-const BLOG_API = `${API_BASE_URL}/api/blog`; 
 
-const MOCK_BOOKINGS = [
-  { id: 'B001', name: 'Alice Johnson', service: 'The Interior Edit', date: '2025-12-15', time: '9:00 AM - 12:00 PM', status: 'Pending', phone: '555-1001', address: '123 King St W' },
-  { id: 'B002', name: 'Robert Smith', service: 'The Exterior Refresh', date: '2025-12-17', time: '12:00 PM - 3:00 PM', status: 'Confirmed', phone: '555-1002', address: '45 Lake Shore Blvd' },
-  { id: 'B003', name: 'Sarah Chen', service: 'The Transition', date: '2025-12-18', time: '3:00 PM - 6:00 PM', status: 'Pending', phone: '555-1003', address: '789 Queen St E' },
-  { id: 'B004', name: 'David Lee', service: 'The Interior Edit', date: '2025-12-20', time: '9:00 AM - 12:00 PM', status: 'Cancelled', phone: '555-1004', address: '10 Yonge St' },
-  { id: 'B005', name: 'Emily White', service: 'The Transition', date: '2025-12-22', time: '12:00 PM - 3:00 PM', status: 'Confirmed', phone: '555-1005', address: '99 Bay St' },
-];
+// Keeping APIs defined for future integration
+const REVIEWS_API = `${API_BASE_URL}/reviews`; 
+const CHAT_API = `${API_BASE_URL}/livechat`; 
+const BLOG_API = `${API_BASE_URL}/blog`; 
+
 
 const MOCK_REVIEWS = [
   { id: 'R101', client: 'Jane Doe', rating: 5, service: 'Interior Edit', date: '2025-11-29', content: 'Absolutely spotless! It felt like walking into a brand new home. The attention to detail was exceptional.', status: 'Published' },
@@ -153,171 +147,11 @@ const ContentWrapper = ({ children, title }) => (
 
 // Bookings Page (Unchanged)
 const BookingsDashboard = () => {
-    // ... (State and useEffect remain the same for data fetching)
-    const [bookings, setBookings] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [filter, setFilter] = useState('All');
-    const [searchTerm, setSearchTerm] = useState('');
-  
-    useEffect(() => {
-      const loadBookings = async () => {
-        setLoading(true);
-        setError(null);
-        const data = await fetchWithRetry(BOOKINGS_API, MOCK_BOOKINGS);
-        if (data) {
-          setBookings(data);
-        } else {
-          setError("Failed to load booking data. Check console for details.");
-        }
-        setLoading(false);
-      };
-      loadBookings();
-    }, []);
-  
-    const filteredBookings = useMemo(() => {
-      return bookings.filter(booking => {
-        const statusMatch = filter === 'All' || booking.status === filter;
-        const searchMatch = searchTerm === '' ||
-          booking.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          booking.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          booking.id.toLowerCase().includes(searchTerm.toLowerCase());
-        return statusMatch && searchMatch;
-      }).sort((a, b) => new Date(a.date) - new Date(b.date));
-    }, [bookings, filter, searchTerm]);
-  
-    const updateBookingStatus = (id, newStatus) => {
-      setBookings(prevBookings => 
-        prevBookings.map(b => (b.id === id ? { ...b, status: newStatus } : b))
-      );
-    };
-
-    if (loading) {
-      return (
-        <div className="flex items-center justify-center h-full min-h-60 p-8 text-slate-600">
-          <Loader2 className="animate-spin mr-3" size={24} />
-          <p className="font-semibold">Loading Bookings...</p>
-        </div>
-      );
-    }
-  
-    if (error) {
-      return (
-        <div className="p-6 bg-red-100 border-l-4 border-red-500 text-red-700">
-          <h4 className="font-bold">Data Load Error</h4>
-          <p className="text-sm">{error}</p>
-        </div>
-      );
-    }
-
     return (
-      <>
-        <div className="flex flex-col md:flex-row gap-4 mb-6 bg-white p-4 rounded-lg shadow-md">
-          <div className="relative flex-grow">
-            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by Client, Service, or ID..."
-              className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-[#d4af37] focus:border-[#d4af37]"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="flex space-x-2 flex-wrap">
-            {['All', 'Pending', 'Confirmed', 'Cancelled'].map(s => (
-              <button
-                key={s}
-                onClick={() => setFilter(s)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  filter === s 
-                    ? 'bg-[#d4af37] text-white shadow-md' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="overflow-x-auto bg-white shadow-lg rounded-lg">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                {['ID', 'Client', 'Service', 'Date/Time', 'Status', 'Actions'].map(header => (
-                  <th 
-                    key={header}
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
-                  >
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredBookings.length > 0 ? (
-                filteredBookings.map(booking => (
-                  <tr key={booking.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800">{booking.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-slate-900">{booking.name}</div>
-                      <div className="text-xs text-gray-500">{booking.phone}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{booking.service}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      <div className="font-medium">{booking.date}</div>
-                      <div className="text-xs text-gray-500">{booking.time}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusPill status={booking.status} />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          title="Confirm Booking"
-                          onClick={() => updateBookingStatus(booking.id, 'Confirmed')}
-                          disabled={booking.status === 'Confirmed'}
-                          className="p-1 rounded-full text-green-600 hover:bg-green-100 disabled:opacity-50"
-                        >
-                          <CheckCircle size={18} />
-                        </button>
-                        <button
-                          title="Cancel Booking"
-                          onClick={() => updateBookingStatus(booking.id, 'Cancelled')}
-                          disabled={booking.status === 'Cancelled'}
-                          className="p-1 rounded-full text-red-600 hover:bg-red-100 disabled:opacity-50"
-                        >
-                          <XCircle size={18} />
-                        </button>
-                        <button
-                          title="Edit Details"
-                          className="p-1 rounded-full text-blue-600 hover:bg-blue-100"
-                        >
-                          <Edit size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="py-12 text-center text-gray-500 text-lg">
-                    No bookings match the current filter/search criteria.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        <div className="mt-8 text-sm text-gray-500">
-            Total Bookings: <span className="font-bold">{bookings.length}</span> | 
-            Showing: <span className="font-bold">{filteredBookings.length}</span>
-        </div>
-      </>
-    );
+      <div>
+        <Booking/>
+      </div>
+  )
 };
 
 // Reviews Page (Unchanged)

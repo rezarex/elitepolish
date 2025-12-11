@@ -1,117 +1,173 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter
-import { CheckCircle, Home, AppWindow, Key } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, CheckCircle, Clock, Calendar, Zap, AlertTriangle, Loader2 } from 'lucide-react';
+import {API_BASE_URL} from '../config/config'
 
-export default function SchedulePage() {
-  const router = useRouter(); // Initialize router
-  const [step, setStep] = useState(1);
-  const [bookingData, setBookingData] = useState({
-    service: '',
-    date: '',
-    time: '',
-    name: '',
-    address: '',
-    phone: ''
-  });
 
-  const services = [
-    { key: 'interior', title: 'The Interior Edit', icon: Home },
-    { key: 'exterior', title: 'The Exterior Refresh', icon: AppWindow },
-    { key: 'transition', title: 'The Transition', icon: Key },
-  ];
+const BOOKING_API = `${API_BASE_URL}/booking/add`;
 
-  const updateData = (key, value) => {
-    setBookingData(prev => ({ ...prev, [key]: value }));
-  };
+const SERVICES = [
+    { id: 'S01', name: 'House Cleaning', description: 'Deep clean for homes needing extra attention.', price: '$350+' },
+    { id: 'S02', name: 'Office Cleaning', description: 'Window washing and gutter cleaning.', price: '$200+' },
+    { id: 'S03', name: 'Special Cleaning', description: 'Construction Debris, Move-in/Move-out and other cleaning service.', price: '$450+' },
+];
 
-  const Step1 = () => (
-    <div className="space-y-6">
-      <h3 className="text-3xl font-serif text-[#0f172a]">1. Choose Service</h3>
-      <p className="text-gray-600">Select the signature service that fits your needs.</p>
-      <div className="grid md:grid-cols-3 gap-6">
-        {services.map(s => (
-          <button
-            key={s.key}
-            className={`p-6 border-2 rounded-lg text-left transition-all font-sans ${
-              bookingData.service === s.key 
-                ? 'border-[#d4af37] bg-[#fcf8e5] shadow-xl' 
-                : 'border-gray-200 hover:border-[#d4af37]/50 bg-white'
-            }`}
-            onClick={() => updateData('service', s.key)}
-          >
-            <s.icon size={32} className={`mb-3 ${bookingData.service === s.key ? 'text-[#d4af37]' : 'text-[#0f172a]'}`} />
-            <h4 className="font-bold text-lg">{s.title}</h4>
-          </button>
-        ))}
-      </div>
-      <div className="flex justify-end pt-4">
-        <button
-          className="bg-[#d4af37] hover:bg-[#b5952f] text-white px-8 py-3 rounded-sm font-bold transition disabled:opacity-50"
-          onClick={() => setStep(2)}
-          disabled={!bookingData.service}
-        >
-          Next: Date & Time
-        </button>
-      </div>
-    </div>
-  );
+const TIME_SLOTS = [
+    '9:00 AM - 12:00 PM',
+    '12:00 PM - 3:00 PM',
+    '3:00 PM - 6:00 PM',
+];
 
-  const Step2 = () => (
-    <div className="space-y-6">
-      <h3 className="text-3xl font-serif text-[#0f172a]">2. Select Date & Time</h3>
-      <div className="grid md:grid-cols-2 gap-6 font-sans">
-        <div>
-          <label className="block text-sm font-medium mb-2">Preferred Date</label>
-          <input
-            type="date"
-            value={bookingData.date}
-            onChange={(e) => updateData('date', e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37]"
-          />
+// --- MODAL COMPONENT ---
+
+const MessageModal = ({ message, type, onClose }) => {
+    if (!message) return null;
+
+    const Icon = type === 'error' ? AlertTriangle : (type === 'loading' ? Loader2 : CheckCircle);
+    const color = type === 'error' ? 'text-red-500' : (type === 'loading' ? 'text-blue-500' : 'text-green-500');
+
+    return (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center">
+                <Icon size={48} className={`mx-auto mb-4 ${color} ${type === 'loading' ? 'animate-spin' : ''}`} />
+                <h4 className="text-xl font-bold mb-4 text-slate-800">
+                    {type === 'loading' ? 'Submitting Request...' : (type === 'error' ? 'Submission Failed' : 'Success')}
+                </h4>
+                <p className="text-gray-600 mb-6">{message}</p>
+                {type !== 'loading' && (
+                    <button
+                        onClick={onClose}
+                        className={`w-full py-2 rounded-lg font-bold transition ${type === 'error' ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-[#0f172a] hover:bg-slate-700 text-white'}`}
+                    >
+                        Close
+                    </button>
+                )}
+            </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium mb-2">Time Slot</label>
-          <select
-            value={bookingData.time}
-            onChange={(e) => updateData('time', e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37]"
-          >
-            <option value="">Select a Time</option>
-            <option value="9am-12pm">9:00 AM - 12:00 PM</option>
-            <option value="12pm-3pm">12:00 PM - 3:00 PM</option>
-            <option value="3pm-6pm">3:00 PM - 6:00 PM</option>
-          </select>
-        </div>
-      </div>
-      <div className="flex justify-between pt-4">
-        <button
-          className="text-gray-600 hover:text-[#0f172a] font-bold transition"
-          onClick={() => setStep(1)}
-        >
-          &larr; Back
-        </button>
-        <button
-          className="bg-[#d4af37] hover:bg-[#b5952f] text-white px-8 py-3 rounded-sm font-bold transition disabled:opacity-50"
-          onClick={() => setStep(3)}
-          disabled={!bookingData.date || !bookingData.time}
-        >
-          Next: Contact Details
-        </button>
-      </div>
-    </div>
-  );
+    );
+};
 
-  const Step3 = () => {
-    const handleSubmit = () => {
-      if (bookingData.name && bookingData.address && bookingData.phone) {
-        setStep(4);
-      } else {
-        console.error("Please fill in all required fields.");
-      }
+
+// --- STEP COMPONENTS ---
+
+// Step 1: Service Selection
+const Step1Service = ({ bookingData, updateData, setStep }) => {
+    return (
+        <div className="space-y-6">
+            <h3 className="text-3xl font-serif text-[#0f172a]">1. Choose Your Service</h3>
+            <div className="grid md:grid-cols-3 gap-6">
+                {SERVICES.map(service => (
+                    <button
+                        key={service.id}
+                        onClick={() => updateData('service', service)}
+                        className={`p-6 border-2 rounded-lg text-left transition-all shadow-md
+                            ${bookingData.service.id === service.id 
+                                ? 'border-[#d4af37] ring-4 ring-[#d4af37]/30 bg-[#fcf8e5]' 
+                                : 'border-gray-200 hover:border-gray-400 bg-white'
+                            }`}
+                    >
+                        <h4 className="text-xl font-bold font-serif mb-1 text-slate-800">{service.name}</h4>
+                        <p className="text-sm text-gray-600 mb-3">{service.description}</p>
+                        {/* Removed price display as per user's input */}
+                    </button>
+                ))}
+            </div>
+            
+            <div className="flex justify-end pt-4">
+                <button
+                    className="bg-[#0f172a] hover:bg-slate-700 text-white px-8 py-3 rounded-sm font-bold transition shadow-lg disabled:opacity-50"
+                    onClick={() => setStep(2)}
+                    disabled={!bookingData.service.id}
+                >
+                    Next: Date & Time <ChevronRight size={18} className="inline ml-1" />
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// Step 2: Date and Time Selection
+const Step2Schedule = ({ bookingData, updateData, setStep }) => {
+
+    const handleDateChange = (e) => {
+        updateData('bookingDate', e.target.value);
+        // Reset time if date changes
+        updateData('timeslot', '');
     };
     
+    // Function to format today's date for input min attribute
+    const getMinDate = () => new Date().toISOString().split('T')[0];
+
+    return (
+        <div className="space-y-6">
+            <h3 className="text-3xl font-serif text-[#0f172a]">2. Schedule Your Appointment</h3>
+            
+            <div className="grid md:grid-cols-2 gap-6 font-sans">
+                {/* Date Picker */}
+                <div>
+                    <label htmlFor="bookingDate" className="block text-sm font-medium mb-2">Select Date</label>
+                    <input
+                        type="date"
+                        id="bookingDate"
+                        value={bookingData.bookingDate}
+                        onChange={handleDateChange}
+                        min={getMinDate()}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37]"
+                    />
+                </div>
+                
+                {/* Time Slots */}
+                <div>
+                    <label className="block text-sm font-medium mb-2">Select Time Slot</label>
+                    <div className="grid grid-cols-3 gap-2">
+                        {TIME_SLOTS.map(slot => {
+                            const isSelected = bookingData.timeslot === slot;
+                            return (
+                                <button
+                                    key={slot}
+                                    // CRITICAL FIX: Changed 'time' to 'timeslot' to match bookingData state
+                                    onClick={() => updateData('timeslot', slot)}
+                                    disabled={!bookingData.bookingDate} 
+                                    className={`p-3 text-sm rounded-lg font-medium transition-all text-center disabled:opacity-50 disabled:cursor-not-allowed
+                                        ${isSelected 
+                                                ? 'bg-[#d4af37] text-white shadow-lg' 
+                                                : 'bg-gray-100 hover:bg-gray-200 text-slate-800'}`}
+                                >
+                                    {slot.split(' - ')[0]}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {bookingData.bookingDate && <p className="text-xs mt-2 text-gray-500">Availability shown for {bookingData.bookingDate}.</p>}
+                </div>
+            </div>
+
+            <div className="flex justify-between pt-4">
+                <button
+                    className="text-gray-600 hover:text-[#0f172a] font-bold transition"
+                    onClick={() => setStep(1)}
+                >
+                    &larr; Back
+                </button>
+                <button
+                    className="bg-[#0f172a] hover:bg-slate-700 text-white px-8 py-3 rounded-sm font-bold transition shadow-lg disabled:opacity-50"
+                    onClick={() => setStep(3)}
+                    disabled={!bookingData.bookingDate || !bookingData.timeslot}
+                >
+                    Next: Your Details <ChevronRight size={18} className="inline ml-1" />
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// Step 3: User Details
+const Step3Details = ({ bookingData, updateData, setStep, handleSubmit, isLoading }) => {
+    const isFormValid = bookingData.name.trim() !== '' && 
+                        bookingData.phone.trim() !== '' && 
+                        bookingData.address.trim() !== '';
+
     return (
       <div className="space-y-6">
         <h3 className="text-3xl font-serif text-[#0f172a]">3. Your Details</h3>
@@ -124,6 +180,7 @@ export default function SchedulePage() {
               onChange={(e) => updateData('name', e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37]"
               placeholder="John Doe"
+              disabled={isLoading} 
             />
           </div>
           <div>
@@ -134,6 +191,7 @@ export default function SchedulePage() {
               onChange={(e) => updateData('phone', e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37]"
               placeholder="(555) 123-4567"
+              disabled={isLoading}
             />
           </div>
         </div>
@@ -145,79 +203,213 @@ export default function SchedulePage() {
             onChange={(e) => updateData('address', e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37]"
             placeholder="123 Luxury Lane, Toronto, ON"
+            disabled={isLoading}
           />
         </div>
         <div className="flex justify-between pt-4">
           <button
-            className="text-gray-600 hover:text-[#0f172a] font-bold transition"
+            className="text-gray-600 hover:text-[#0f172a] font-bold transition disabled:opacity-50"
             onClick={() => setStep(2)}
+            disabled={isLoading}
           >
             &larr; Back
           </button>
           <button
-            className="bg-[#0f172a] hover:bg-slate-700 text-white px-8 py-3 rounded-sm font-bold transition shadow-lg"
+            className="bg-[#0f172a] hover:bg-slate-700 text-white px-8 py-3 rounded-sm font-bold transition shadow-lg disabled:opacity-50 flex items-center justify-center"
             onClick={handleSubmit}
+            disabled={!isFormValid || isLoading}
           >
-            Confirm & Request Quote
+            {isLoading ? (
+                <>
+                    <Loader2 size={18} className="animate-spin mr-2" />
+                    Submitting...
+                </>
+            ) : (
+                'Confirm & Request Quote'
+            )}
           </button>
         </div>
       </div>
     );
-  };
-
-  const Step4 = () => (
-    <div className="text-center py-12 px-6 font-sans">
-      <CheckCircle size={64} className="text-[#d4af37] mx-auto mb-6" />
-      <h3 className="text-4xl font-serif text-[#0f172a] mb-4">Consultation Requested!</h3>
-      <p className="text-lg text-gray-700 mb-8">
-        Thank you, <span className="font-bold">{bookingData.name}</span>! Your request for the <span className="font-bold">{services.find(s => s.key === bookingData.service).title}</span> 
-        on <span className="font-bold">{bookingData.date}</span> at <span className="font-bold">{bookingData.time}</span> has been successfully submitted.
-      </p>
-      <p className="text-gray-600 mb-8">
-        Our concierge team will review the details and contact you shortly at <span className="font-bold">{bookingData.phone}</span> 
-        to confirm the final quote and schedule.
-      </p>
-      <button
-        className="text-[#d4af37] border border-[#d4af37] hover:bg-[#d4af37] hover:text-white px-8 py-3 rounded-sm font-bold transition"
-        onClick={() => router.push('/')} // Use router to navigate back to the home page
-      >
-        Return to Home Page
-      </button>
-    </div>
-  );
-
-  const steps = {
-    1: <Step1 />,
-    2: <Step2 />,
-    3: <Step3 />,
-    4: <Step4 />,
-  };
-
-  const progress = (step / 4) * 100;
-
-  return (
-    <div className="py-20 px-6 max-w-4xl mx-auto min-h-[70vh] font-sans">
-      <div className="text-center mb-12">
-        <h2 className="font-serif text-5xl text-[#0f172a]">Book Your Service</h2>
-        <p className="text-gray-500 mt-2">A simple three-step process to reclaim your time.</p>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="mb-10">
-        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-[#d4af37] transition-all duration-500" 
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        {step < 4 && (
-          <p className="text-center text-sm text-gray-500 mt-2">Step {step} of 3</p>
-        )}
-      </div>
-
-      <div className="bg-white p-8 md:p-12 shadow-2xl rounded-lg border-t-4 border-[#0f172a]">
-        {steps[step]}
-      </div>
-    </div>
-  );
 };
+
+// Step 4: Confirmation/Summary
+const Step4Confirmation = ({ bookingData }) => {
+    const { service, bookingDate, timeslot, name, phone, address } = bookingData;
+    
+    // Safety check for confirmation display, uses service.name
+    const serviceName = service?.name || 'Service Not Selected';
+
+    return (
+        <div className="space-y-6 text-center p-12 bg-white rounded-xl shadow-2xl">
+            <CheckCircle size={64} className="text-green-500 mx-auto mb-4" />
+            <h3 className="text-4xl font-serif text-[#0f172a] font-extrabold">Quote Requested!</h3>
+            <p className="text-lg text-gray-600">
+                Thank you, {name}! We have successfully logged your service request and will be in touch shortly to finalize the details and provide a precise quote.
+            </p>
+
+            <div className="bg-gray-50 p-6 rounded-lg text-left inline-block w-full max-w-md mx-auto">
+                <h4 className="text-xl font-bold border-b pb-2 mb-3 text-slate-800">Your Booking Summary</h4>
+                <div className="space-y-2 text-sm">
+                    <p className="flex justify-between"><strong>Service:</strong> <span className="font-semibold text-[#d4af37]">{serviceName}</span></p>
+                    <p className="flex justify-between"><strong>Date:</strong> <span>{bookingDate}</span></p>
+                    <p className="flex justify-between"><strong>Time Slot:</strong> <span>{timeslot}</span></p>
+                    <p className="flex justify-between"><strong>Address:</strong> <span>{address}</span></p>
+                    <p className="flex justify-between"><strong>Contact:</strong> <span>{phone}</span></p>
+                </div>
+            </div>
+            <p className="text-sm text-gray-500 pt-4">The booking data was successfully sent to the backend (check console for payload log).</p>
+        </div>
+    );
+};
+
+
+// --- MAIN APP COMPONENT ---
+
+export default function BookingApp() {
+    const [step, setStep] = useState(1);
+    const [bookingData, setBookingData] = useState({
+        service: {},
+        bookingDate: '',
+        timeslot: '',
+        name: '',
+        phone: '',
+        address: ''
+    });
+    // State for API submission feedback
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    // Universal function to update booking data
+    const updateData = (field, value) => {
+        setBookingData(prev => ({ ...prev, [field]: value }));
+    };
+
+ 
+    const handleSubmit = async () => {
+        setIsLoading(true);
+        setErrorMessage(''); // Clear previous errors
+
+        try {
+            // Construct the desired payload format
+            const payload = {
+                name: bookingData.name,
+                bookingDate: bookingData.bookingDate,
+                timeslot: bookingData.timeslot,
+                phone: bookingData.phone,
+                address: bookingData.address,
+                // CRITICAL CHANGE: Extract only the service name string
+                service: bookingData.service?.name || 'Unknown Service' 
+            };
+            
+            // --- LOGGING THE PAYLOAD ---
+            console.log("--- STARTING API SUBMISSION ---");
+            // Log the newly constructed payload
+            console.log("Payload to be sent", JSON.stringify(payload, null, 2));
+            console.log(BOOKING_API);
+            
+            console.log("-----------------------------");
+            // -----------------------------
+
+            const response = await fetch(BOOKING_API, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload), // Send the modified payload
+            });
+
+            if (!response.ok) {
+                // If response is not 2xx, throw an error
+                let errorDetails = `Status: ${response.status}`;
+                try {
+                    const errorJson = await response.json();
+                    errorDetails += ` - ${errorJson.message || JSON.stringify(errorJson)}`;
+                } catch (e) {
+                    // Handle non-JSON responses
+                    errorDetails += ' - Non-JSON response received.';
+                }
+                throw new Error(`Booking submission failed. ${errorDetails}`);
+            }
+
+            // Successful submission
+            console.log("Booking successfully submitted to /api/booking.");
+            setStep(4); // Advance to confirmation step
+
+        } catch (error) {
+            console.error("Submission Error:", error.message);
+            // Display error to the user via modal
+            setErrorMessage(error.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const renderStep = () => {
+        switch (step) {
+            case 1:
+                return <Step1Service bookingData={bookingData} updateData={updateData} setStep={setStep} />;
+            case 2:
+                return <Step2Schedule bookingData={bookingData} updateData={updateData} setStep={setStep} />;
+            case 3:
+                // Pass isLoading state to Step 3
+                return <Step3Details 
+                            bookingData={bookingData} 
+                            updateData={updateData} 
+                            setStep={setStep} 
+                            handleSubmit={handleSubmit}
+                            isLoading={isLoading} 
+                        />;
+            case 4:
+                return <Step4Confirmation bookingData={bookingData} />;
+            default:
+                return <Step1Service bookingData={bookingData} updateData={updateData} setStep={setStep} />;
+        }
+    };
+    
+    // Status Bar to track progress
+    const steps = [
+        { label: 'Service', icon: Zap, step: 1 },
+        { label: 'Schedule', icon: Calendar, step: 2 },
+        { label: 'Details', icon: Clock, step: 3 },
+        { label: 'Confirm', icon: CheckCircle, step: 4 }
+    ];
+
+    return (
+        <div className="min-h-screen bg-gray-50 p-4 sm:p-8 lg:p-12 font-sans">
+            <MessageModal 
+                message={errorMessage} 
+                type="error" 
+                onClose={() => setErrorMessage('')} 
+            />
+
+            <div className="max-w-4xl mx-auto bg-white p-8 sm:p-10 rounded-xl shadow-2xl border-t-8 border-[#d4af37]">
+                <h1 className="text-4xl sm:text-5xl font-serif text-[#0f172a] mb-8 text-center font-extrabold">
+                    Schedule Your Elite Polish Service
+                </h1>
+                
+                {/* Progress Bar */}
+                <div className="flex justify-between items-center mb-12 relative">
+                    <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -z-10 mx-6" />
+                    {steps.map((s, index) => (
+                        <div key={s.step} className="flex flex-col items-center">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2 transition-colors duration-500
+                                ${step >= s.step 
+                                    ? 'bg-[#d4af37] text-white shadow-md' 
+                                    : 'bg-gray-200 text-gray-500'
+                                }`}>
+                                <s.icon size={20} />
+                            </div>
+                            <span className={`text-sm font-semibold hidden sm:block ${step >= s.step ? 'text-[#0f172a]' : 'text-gray-500'}`}>
+                                {s.label}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Render Current Step */}
+                {renderStep()}
+            </div>
+        </div>
+    );
+}
