@@ -4,12 +4,13 @@ import { LayoutDashboard, Users, Calendar, Settings, Search, Edit, CheckCircle, 
 import AdminDashboardOverview from './page';
 import Booking from './Booking';
 import { API_BASE_URL } from '@/config/config';
+import Blog from './Blog';
 // --- CONFIGURATION & MOCK DATA ---
 
 // Keeping APIs defined for future integration
 const REVIEWS_API = `${API_BASE_URL}/reviews`; 
 const CHAT_API = `${API_BASE_URL}/livechat`; 
-const BLOG_API = `${API_BASE_URL}/blog`; 
+
 
 
 const MOCK_REVIEWS = [
@@ -25,12 +26,12 @@ const MOCK_CHATS = [
     { id: 'C003', client: 'Guest 123', lastMessage: 'What are your prices?', time: '1 hour ago', unread: 1, messages: [{ sender: 'client', text: 'What are your prices?', time: '1 hour ago' }] },
 ];
 
-const MOCK_BLOG_POSTS = [
-    { id: 'P001', title: '5 Tips for Seasonal Deep Cleaning', author: 'Staff', date: '2025-12-01', status: 'Published', views: 1240 },
-    { id: 'P002', title: 'The Benefits of Professional Window Washing', author: 'Jane Admin', date: '2025-11-25', status: 'Draft', views: 12 },
-    { id: 'P003', title: 'Eco-Friendly Cleaning Products We Love', author: 'Staff', date: '2025-11-10', status: 'Published', views: 890 },
-    { id: 'P004', title: 'Moving Out? How to Ace Your Security Deposit Clean', author: 'Staff', date: '2025-10-30', status: 'Archived', views: 2500 },
-];
+// const MOCK_BLOG_POSTS = [
+//     { id: 'P001', title: '5 Tips for Seasonal Deep Cleaning', author: 'Staff', date: '2025-12-01', status: 'Published', views: 1240 },
+//     { id: 'P002', title: 'The Benefits of Professional Window Washing', author: 'Jane Admin', date: '2025-11-25', status: 'Draft', views: 12 },
+//     { id: 'P003', title: 'Eco-Friendly Cleaning Products We Love', author: 'Staff', date: '2025-11-10', status: 'Published', views: 890 },
+//     { id: 'P004', title: 'Moving Out? How to Ace Your Security Deposit Clean', author: 'Staff', date: '2025-10-30', status: 'Archived', views: 2500 },
+// ];
 
 const STATUS_MAP = {
   Pending: { color: 'text-amber-600 bg-amber-100', icon: Clock, button: 'bg-amber-500 hover:bg-amber-600' },
@@ -392,264 +393,16 @@ const LiveChat = () => {
 
 // --- Blog Sub-components ---
 
-const NewPostForm = ({ newPost, setNewPost, handleFormSubmit, onCancel }) => {
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setNewPost(prev => ({ ...prev, [name]: value }));
-    };
 
-    const isFormValid = newPost.title.trim() !== '' && newPost.content.trim() !== '';
-
-    return (
-        <form onSubmit={handleFormSubmit} className="bg-white p-8 rounded-lg shadow-xl">
-            <h2 className="text-2xl font-serif text-slate-800 mb-6 border-b pb-3 flex items-center">
-                <PenTool size={24} className="mr-3 text-[#d4af37]" /> Create New Blog Post
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Post Title</label>
-                    <input
-                        type="text"
-                        id="title"
-                        name="title"
-                        value={newPost.title}
-                        onChange={handleChange}
-                        placeholder="e.g., 5 Tips for Seasonal Deep Cleaning"
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#d4af37] focus:border-[#d4af37]"
-                        required
-                    />
-                </div>
-                <div>
-                    <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-1">Author</label>
-                    <input
-                        type="text"
-                        id="author"
-                        name="author"
-                        value={newPost.author}
-                        onChange={handleChange}
-                        placeholder="Admin Name"
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#d4af37] focus:border-[#d4af37]"
-                        required
-                    />
-                </div>
-            </div>
-
-            <div className="mb-6">
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                    id="status"
-                    name="status"
-                    value={newPost.status}
-                    onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#d4af37] focus:border-[#d4af37]"
-                >
-                    <option value="Draft">Draft</option>
-                    <option value="Published">Published</option>
-                </select>
-            </div>
-
-            <div className="mb-8">
-                <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">Post Content (Markdown supported)</label>
-                <textarea
-                    id="content"
-                    name="content"
-                    value={newPost.content}
-                    onChange={handleChange}
-                    rows="10"
-                    placeholder="Start writing your compelling blog post here..."
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#d4af37] focus:border-[#d4af37]"
-                    required
-                ></textarea>
-            </div>
-
-            <div className="flex justify-end space-x-4">
-                <button
-                    type="button"
-                    onClick={onCancel}
-                    className="flex items-center px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition"
-                >
-                    <ChevronLeft size={18} className="mr-2" /> Back to Posts
-                </button>
-                <button
-                    type="submit"
-                    disabled={!isFormValid}
-                    className="flex items-center px-6 py-2 bg-[#0f172a] text-white rounded-lg font-medium hover:bg-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                >
-                    <Save size={18} className="mr-2" /> Save {newPost.status}
-                </button>
-            </div>
-        </form>
-    );
-};
 
 
 // Blog Page (UPDATED)
 const BlogManagement = () => {
-    const [posts, setPosts] = useState(MOCK_BLOG_POSTS);
-    const [loading, setLoading] = useState(false); // Mock data is already set, so setting to false
-    const [error, setError] = useState(null);
-    const [filter, setFilter] = useState('All');
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [newPost, setNewPost] = useState({
-        title: '',
-        author: 'Jane Admin', // Default author for new posts
-        content: '',
-        status: 'Draft'
-    });
-    
-    // Simulating initial load (can remove the loadPosts logic if using MOCK data directly)
-    useEffect(() => {
-        setLoading(true);
-        // Simulate a quick fetch
-        setTimeout(() => {
-            setLoading(false);
-        }, 500);
-    }, []);
-
-    const filteredPosts = useMemo(() => {
-        return posts.filter(post => 
-            filter === 'All' || post.status === filter
-        ).sort((a, b) => new Date(b.date) - new Date(a.date));
-    }, [posts, filter]);
-
-    const updatePostStatus = (id, newStatus) => {
-        setPosts(prevPosts => 
-            prevPosts.map(p => (p.id === id ? { ...p, status: newStatus } : p))
-        );
-    };
-    
-    const handleFormSubmit = (e) => {
-        e.preventDefault();
-        if (!newPost.title.trim() || !newPost.content.trim()) return;
-
-        const postToAdd = {
-            id: `P${String(posts.length + 1).padStart(3, '0')}`,
-            ...newPost,
-            date: new Date().toISOString().split('T')[0],
-            views: 0,
-        };
-
-        setPosts(prevPosts => [postToAdd, ...prevPosts]);
-        
-        // Reset form and close
-        setNewPost({ title: '', author: 'Jane Admin', content: '', status: 'Draft' });
-        setIsFormOpen(false);
-    };
-
-    if (loading) return <div className="flex items-center justify-center h-full min-h-60 p-8 text-slate-600"><Loader2 className="animate-spin mr-3" size={24} /> Loading Blog Posts...</div>;
-    if (error) return <div className="p-6 bg-red-100 border-l-4 border-red-500 text-red-700">Error: {error}</div>;
-
-    if (isFormOpen) {
-        return (
-            <NewPostForm
-                newPost={newPost}
-                setNewPost={setNewPost}
-                handleFormSubmit={handleFormSubmit}
-                onCancel={() => {
-                    setIsFormOpen(false);
-                    // Reset new post data if cancelled
-                    setNewPost({ title: '', author: 'Jane Admin', content: '', status: 'Draft' });
-                }}
-            />
-        );
-    }
-
-    return (
-        <>
-            <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-md">
-                <div className="flex space-x-2 flex-wrap">
-                    {['All', 'Published', 'Draft', 'Archived'].map(s => (
-                        <button
-                            key={s}
-                            onClick={() => setFilter(s)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                                filter === s 
-                                    ? 'bg-[#0f172a] text-white shadow-md' 
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                        >
-                            {s}
-                        </button>
-                    ))}
-                </div>
-                <button
-                    onClick={() => setIsFormOpen(true)}
-                    className="flex items-center px-4 py-2 bg-[#d4af37] text-white rounded-lg font-medium hover:bg-[#c0a030] transition shadow-md"
-                >
-                    <PlusCircle size={18} className="mr-2" /> New Post
-                </button>
-            </div>
-
-            <div className="overflow-x-auto bg-white shadow-lg rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            {['Title', 'Author', 'Date', 'Status', 'Views', 'Actions'].map(header => (
-                                <th 
-                                    key={header}
-                                    scope="col"
-                                    className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
-                                >
-                                    {header}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {filteredPosts.length > 0 ? (
-                            filteredPosts.map(post => (
-                                <tr key={post.id} className="hover:bg-gray-50 transition">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800">{post.title}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{post.author}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{post.date}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <StatusPill status={post.status} map={POST_STATUS_MAP} />
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{post.views.toLocaleString()}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div className="flex space-x-2">
-                                            <button
-                                                title="Edit Post"
-                                                className="p-1 rounded-full text-blue-600 hover:bg-blue-100"
-                                            >
-                                                <Edit size={18} />
-                                            </button>
-                                            {post.status !== 'Published' && (
-                                                <button
-                                                    title="Publish"
-                                                    onClick={() => updatePostStatus(post.id, 'Published')}
-                                                    className="p-1 rounded-full text-green-600 hover:bg-green-100"
-                                                >
-                                                    <Eye size={18} />
-                                                </button>
-                                            )}
-                                            {post.status !== 'Archived' && (
-                                                <button
-                                                    title="Archive"
-                                                    onClick={() => updatePostStatus(post.id, 'Archived')}
-                                                    className="p-1 rounded-full text-red-600 hover:bg-red-100"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="6" className="py-12 text-center text-gray-500 text-lg">
-                                    No posts match the current filter.
-                                
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-        </>
-    );
+  return (
+    <div>
+        <Blog/>
+    </div>
+  )
 };
 
 // Placeholder Pages (Unchanged)
