@@ -20,7 +20,8 @@ const FloatingReviews = () => {
   // State for new review form
   const [newName, setNewName] = useState('');
   const [newRating, setNewRating] = useState(5);
-  const [newExcerpt, setNewExcerpt] = useState('');
+  // Renamed to newExperience to match the data field being submitted
+  const [newExperience, setNewExperience] = useState(''); 
 
   // Function to fetch reviews from the actual API
   const loadReviews = useCallback(async () => {
@@ -31,7 +32,7 @@ const FloatingReviews = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const fetchedReviews = await response.json();
-      // Assuming the API returns an array of review objects: [{ id, name, rating, excerpt }, ...]
+      // Assuming the API returns an array of review objects: [{ id, name, rating, experience }, ...]
       setReviews(fetchedReviews);
     } catch (error) {
       console.error('Failed to fetch reviews:', error);
@@ -64,19 +65,21 @@ const FloatingReviews = () => {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    if (!newName.trim() || !newExcerpt.trim() || newRating < 1 || newRating > 5) return;
+    if (!newName.trim() || !newExperience.trim() || newRating < 1 || newRating > 5) return;
 
     setSubmitStatus('submitting');
 
     const reviewData = {
       name: newName.trim(),
       rating: newRating,
-      excerpt: newExcerpt.trim(),
-      // Add any other necessary fields for your API (e.g., date, product_id)
+      experience: newExperience.trim(), // Key name matches the API expectation
+
     };
     
     // --- ACTUAL BACKEND API CALL ---
     try {
+      console.log(reviewData);
+      
       const response = await fetch(ADD_REVIEW_API, {
         method: 'POST',
         headers: { 
@@ -95,11 +98,7 @@ const FloatingReviews = () => {
       // Assuming the API returns the newly created review object upon success
       const submittedReview = await response.json(); 
 
-      // OPTION 1: Add the new review to the local state (requires the API to return the full object)
-      // submittedReview.isNew = true; // Mark for temporary display
-      // setReviews(prevReviews => [submittedReview, ...prevReviews]);
-      
-      // OPTION 2: Re-fetch all reviews to ensure state is synchronized (safer)
+      // Re-fetch all reviews to ensure state is synchronized (safer)
       await loadReviews(); 
 
       // Success feedback
@@ -108,7 +107,7 @@ const FloatingReviews = () => {
       // Reset form fields
       setNewName('');
       setNewRating(5);
-      setNewExcerpt('');
+      setNewExperience('');
 
     } catch (error) {
       console.error('Failed to submit review:', error);
@@ -154,8 +153,8 @@ const FloatingReviews = () => {
               />
               <textarea
                 placeholder="Your Experience (max 50 words)"
-                value={newExcerpt}
-                onChange={(e) => setNewExcerpt(e.target.value)}
+                value={newExperience}
+                onChange={(e) => setNewExperience(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-lg text-xs resize-none text-black"
                 rows="3"
                 maxLength="50"
@@ -183,7 +182,7 @@ const FloatingReviews = () => {
                 <button 
                   type="submit" 
                   className="bg-[#d4af37] text-white text-xs px-3 py-1 rounded-lg hover:bg-[#b5952f] transition disabled:opacity-50 flex items-center"
-                  disabled={isSubmitting || !newName.trim() || !newExcerpt.trim()}
+                  disabled={isSubmitting || !newName.trim() || !newExperience.trim()}
                 >
                   <Send size={14} className="mr-1"/> 
                   {isSubmitting ? 'Posting...' : 'Post'}
@@ -206,13 +205,18 @@ const FloatingReviews = () => {
               <p className="text-sm text-gray-500 text-center">Loading reviews...</p>
             ) : reviews.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center">No reviews found yet.</p>
-            ) : reviews.map(review => (
-              <div key={review.id} className={`border-b border-gray-100 pb-2 last:border-b-0 ${review.isNew ? 'bg-yellow-50/50 p-2 rounded-lg' : ''}`}>
+            ) : reviews.map((review, i) => (
+              <div 
+                // Ensure a unique key is always available. We combine name and index as a fallback
+                // if review.id is not present, although ideally review.id should always exist.
+                key={review.id || `${review.name}-${i}`} 
+                className={`border-b border-gray-100 pb-2 last:border-b-0 ${review.isNew ? 'bg-yellow-50/50 p-2 rounded-lg' : ''}`}
+              >
                 <div className="flex justify-between items-center text-sm">
                     <span className="font-semibold text-gray-500">{review.name}</span>
                     <div className="flex">{renderStars(review.rating, 14)}</div>
                 </div>
-                <p className="text-xs text-gray-600 italic mt-1 line-clamp-2">"{review.excerpt}"</p>
+                <p className="text-xs text-gray-600 italic mt-1 line-clamp-2">"{review.experience}"</p>
                 {review.isNew && <span className="text-xs text-green-600 font-medium"> (New/Pending)</span>}
               </div>
             ))}
