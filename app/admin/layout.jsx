@@ -6,6 +6,7 @@ import Booking from './Booking';
 import { API_BASE_URL } from '@/config/config';
 import Blog from './Blog';
 import Livechat from './Livechat';
+import ReviewsMgt from './ReviewsManagement';
 // --- CONFIGURATION & MOCK DATA ---
 
 // Keeping APIs defined for future integration
@@ -14,12 +15,7 @@ const CHAT_API = `${API_BASE_URL}/livechat`;
 
 
 
-const MOCK_REVIEWS = [
-  { id: 'R101', client: 'Jane Doe', rating: 5, service: 'Interior Edit', date: '2025-11-29', content: 'Absolutely spotless! It felt like walking into a brand new home. The attention to detail was exceptional.', status: 'Published' },
-  { id: 'R102', client: 'Mike V.', rating: 4, service: 'Exterior Refresh', date: '2025-11-25', content: 'Great window cleaning service, but the gutter cleaning was a bit pricey. Overall satisfied.', status: 'Pending' },
-  { id: 'R103', client: 'Sarah K.', rating: 5, service: 'Transition', date: '2025-11-20', content: 'Our new place was sparkling clean for the move-in. Saved us a ton of stress!', status: 'Published' },
-  { id: 'R104', client: 'Anonymous', rating: 2, service: 'Interior Edit', date: '2025-11-18', content: 'One room was missed. They offered to come back, but it was an inconvenience.', status: 'Archived' },
-];
+
 
 
 
@@ -36,11 +32,7 @@ const STATUS_MAP = {
   Cancelled: { color: 'text-red-600 bg-red-100', icon: XCircle, button: 'bg-red-500 hover:bg-red-600' },
 };
 
-const REVIEW_STATUS_MAP = {
-  Published: { color: 'text-blue-600 bg-blue-100', icon: CheckCircle },
-  Pending: { color: 'text-amber-600 bg-amber-100', icon: Clock },
-  Archived: { color: 'text-gray-600 bg-gray-100', icon: Trash2 },
-};
+
 
 const POST_STATUS_MAP = {
   Published: { color: 'text-green-600 bg-green-100', icon: Eye },
@@ -154,103 +146,11 @@ const BookingsDashboard = () => {
 
 // Reviews Page (Unchanged)
 const ReviewsManagement = () => {
-    const [reviews, setReviews] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [filter, setFilter] = useState('All');
-
-    useEffect(() => {
-        const loadReviews = async () => {
-            setLoading(true);
-            setError(null);
-            const data = await fetchWithRetry(REVIEWS_API, MOCK_REVIEWS);
-            if (data) {
-                setReviews(data);
-            } else {
-                setError("Failed to load review data.");
-            }
-            setLoading(false);
-        };
-        loadReviews();
-    }, []);
-
-    const filteredReviews = useMemo(() => {
-        return reviews.filter(review => 
-            filter === 'All' || review.status === filter
-        );
-    }, [reviews, filter]);
-
-    const updateReviewStatus = (id, newStatus) => {
-        setReviews(prevReviews => 
-            prevReviews.map(r => (r.id === id ? { ...r, status: newStatus } : r))
-        );
-    };
-
-    if (loading) return <div className="p-8"><Loader2 className="animate-spin mr-3" size={24} /> Loading Reviews...</div>;
-    if (error) return <div className="p-6 bg-red-100 border-l-4 border-red-500 text-red-700">Error: {error}</div>;
-
-    return (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-             <div className="col-span-full flex space-x-2 mb-4 bg-white p-4 rounded-lg shadow-md">
-                {['All', 'Pending', 'Published', 'Archived'].map(s => (
-                    <button
-                        key={s}
-                        onClick={() => setFilter(s)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                            filter === s 
-                                ? 'bg-[#0f172a] text-white shadow-md' 
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                    >
-                        {s}
-                    </button>
-                ))}
-            </div>
-
-            {filteredReviews.length > 0 ? (
-                filteredReviews.map(review => (
-                    <div key={review.id} className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#d4af37]">
-                        <div className="flex justify-between items-start mb-3">
-                            <div className="font-bold text-lg text-slate-800">{review.client}</div>
-                            <StatusPill status={review.status} map={REVIEW_STATUS_MAP} />
-                        </div>
-                        <div className="flex mb-3">
-                            {[...Array(review.rating)].map((_, i) => (
-                                <Star key={i} size={16} fill="#d4af37" stroke="none" className="text-[#d4af37]" />
-                            ))}
-                            {[...Array(5 - review.rating)].map((_, i) => (
-                                <Star key={i + review.rating} size={16} className="text-gray-300" />
-                            ))}
-                        </div>
-                        <p className="text-sm italic text-gray-700 mb-4 line-clamp-3">"{review.content}"</p>
-                        <div className="text-xs text-gray-500 mb-4">
-                            Service: {review.service} | Date: {review.date}
-                        </div>
-                        <div className="flex space-x-2 border-t pt-4">
-                            <button
-                                onClick={() => updateReviewStatus(review.id, 'Published')}
-                                disabled={review.status === 'Published'}
-                                className="flex items-center text-xs px-3 py-1 bg-green-500 text-white rounded-full hover:bg-green-600 disabled:opacity-50"
-                            >
-                                <CheckCircle size={14} className="mr-1" /> Publish
-                            </button>
-                            <button
-                                onClick={() => updateReviewStatus(review.id, 'Archived')}
-                                disabled={review.status === 'Archived'}
-                                className="flex items-center text-xs px-3 py-1 bg-red-500 text-white rounded-full hover:bg-red-600 disabled:opacity-50"
-                            >
-                                <Trash2 size={14} className="mr-1" /> Archive
-                            </button>
-                        </div>
-                    </div>
-                ))
-            ) : (
-                <div className="col-span-3 py-12 text-center text-gray-500 text-lg bg-white rounded-lg shadow-md">
-                    No reviews match the current filter.
-                </div>
-            )}
-        </div>
-    );
+return (
+  <>
+   <ReviewsMgt/>
+  </>
+)
 };
 
 // Live Chat Page (Unchanged)
