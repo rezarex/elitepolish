@@ -1,27 +1,34 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageSquare, X, Send } from 'lucide-react';
 import { io } from 'socket.io-client'; 
-import { API_BASE_URL } from '@/config/config';
+import { CHAT_CONFIG, API_BASE_URL } from '@/config/config.jsx'; // Import CHAT_CONFIG
 
-// const SERVER_URL = 'http://localhost:5000'; 
-const SERVER_URL = `${API_BASE_URL}`; 
-// socket is no longer needed globally, use socketRef.current instead
-// let socket; 
+// Constants from config (using config for API_BASE_URL)
+const { CLIENT_MESSAGE_URL, TYPING_STATUS_URL, SERVER_URL } = CHAT_CONFIG;
 
 // Utility to generate a unique temporary ID if the user doesn't enter a name
 const generateTempId = () => `Guest-${Date.now()}`;
 
-// --- EXTRACTED COMPONENT: Name Submission Form ---
-// Now defined outside the main component to prevent re-creation on LiveChatButton state changes
+
+// --- Utility: Debounce for Typing Status ---
+// This ensures we only fire the "stop typing" event after the user has paused for a moment.
+const debounce = (func, delay) => {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+    };
+};
+
+// --- EXTRACTED COMPONENT: Name Submission Form (Unchanged) ---
 const NameForm = ({ tempUserName, setTempUserName, handleNameSubmit }) => (
     <form onSubmit={handleNameSubmit} className="p-4 flex flex-col items-center justify-center flex-grow">
         <h5 className="font-bold text-lg text-[#0f172a] mb-4">What is your name?</h5>
         <input 
           type="text" 
           placeholder="Enter your name" 
-          // The state value and handler are passed as props
           value={tempUserName}
           onChange={(e) => setTempUserName(e.target.value)}
           className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-500 focus:ring-[#d4af37] focus:border-[#d4af37] mb-4"
@@ -37,9 +44,8 @@ const NameForm = ({ tempUserName, setTempUserName, handleNameSubmit }) => (
     </form>
 );
 
-// --- EXTRACTED COMPONENT: Chat Window ---
-// Now defined outside the main component to prevent re-creation on LiveChatButton state changes
-const ChatWindow = ({ history, messagesEndRef, message, setMessage, handleSendMessage, isConnected }) => (
+// --- UPDATED COMPONENT: Chat Window ---
+const ChatWindow = ({ history, messagesEndRef, message, setMessage, handleSendMessage, handleTyping, isConnected }) => (
     <>
         {/* Messages */}
         <div className="flex-grow overflow-y-auto py-3 space-y-3">
@@ -62,9 +68,9 @@ const ChatWindow = ({ history, messagesEndRef, message, setMessage, handleSendMe
             <input 
             type="text" 
             placeholder="Type your message..." 
-            // The state value and handler are passed as props
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleTyping} // <-- NEW: Typing status initiation
             className="flex-grow p-2 border border-gray-300 rounded-lg text-sm text-gray-500 focus:ring-[#d4af37] focus:border-[#d4af37]"
             />
             <button 
@@ -82,85 +88,238 @@ const LiveChatButton = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [nameSubmitted, setNameSubmitted] = useState(false);
     const [userName, setUserName] = useState('');
-    const [tempUserName, setTempUserName] = useState(''); // Holds input value before submission
+    const [tempUserName, setTempUserName] = useState(''); 
     const [message, setMessage] = useState('');
     const [history, setHistory] = useState([]);
     const socketRef = useRef(null); 
     const [isConnected, setIsConnected] = useState(false);
     const messagesEndRef = useRef(null);
+    const isTypingRef = useRef(false);// To prevent sending "start typing" repeatedly
+    const [conversationId, setConversationId] = useState(null);
 
-    const currentUserId = nameSubmitted ? userName : generateTempId(); 
+    // const currentUserId = nameSubmitted ? userName : generateTempId(); 
 
     // --- Utility for Auto-Scrolling ---
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
+    
+    // --- API Call to Report Typing Status ---
+    const sendTypingStatus = useCallback(async (isTyping) => {
+        if (!conversationId || !nameSubmitted) return;
+
+        try {
+            // Log the payload to ensure correct data is sent
+            const payload = { userId: conversationId, isTyping };
+            console.log('Reporting typing status:', payload);
+
+            await fetch(TYPING_STATUS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            isTypingRef.current = isTyping; // Update ref after successful send
+        } catch (error) {
+            console.error('Failed to report typing status:', error);
+            // On error, let isTypingRef remain unchanged to retry on next key stroke
+        }
+    }, [conversationId, nameSubmitted, TYPING_STATUS_URL]);
+
+
+    // --- Debounced function to stop typing ---
+    const debouncedStopTyping = useRef(
+        debounce(() => {
+            sendTypingStatus(false);
+        }, 1500) // Stop status sent 1.5 seconds after the last key stroke
+    ).current;
+
+
+    // --- NEW: Typing Handler ---
+    const handleTyping = () => {
+        if (!nameSubmitted || !isConnected) return;
+
+        // 1. Send START TYPING status immediately if not already typing
+        if (!isTypingRef.current) {
+            sendTypingStatus(true);
+        }
+
+        // 2. Reset the debounced function, so the "stop typing" is postponed
+        debouncedStopTyping();
+    };
+
 
     // --- SOCKET.IO LIFECYCLE MANAGEMENT ---
-  useEffect(() => {
-        if (nameSubmitted && isOpen && !socketRef.current) {
-            // 1. Connect
-            const newSocket = io(SERVER_URL);
-            socketRef.current = newSocket;
-            
-            // 2. Set Connection Listeners
-            newSocket.on('connect', () => {
-                setIsConnected(true);
-                console.log(`Socket connected as ${userName}`);
-                setHistory([
-                    { id: 'welcome', text: `Hello, ${userName}! A concierge will be with you shortly.`, sender: 'concierge' }
-                ]);
-            });
 
-            newSocket.on('disconnect', () => {
-                setIsConnected(false);
-                console.log('Socket disconnected.');
-            });
-
-            // 3. Listen for incoming messages
-            newSocket.on('chat message', (data) => {
-                if (data.user === currentUserId) return; 
-
-                const newMessage = {
-                    id: Date.now(),
-                    text: data.message, 
-                    sender: data.user === 'concierge_elite_polish' ? 'concierge' : 'client', 
-                };
-                setHistory(prev => [...prev, newMessage]);
-            });
-        }
+useEffect(() => {
+    if (nameSubmitted && isOpen && conversationId && !socketRef.current) {
+        console.log(conversationId);
         
-        // 4. Cleanup function: disconnect the socket when unmounting or dependencies change
-        return () => {
-            if (socketRef.current) {
-                socketRef.current.disconnect();
-                socketRef.current = null;
-                setIsConnected(false);
-                console.log('Socket disconnected on cleanup.');
-            }
-        };
-    }, [nameSubmitted, isOpen, userName, currentUserId]); // Added currentUserId to dependencies to ensure correct message filtering
+        // 1. Connect
+        const newSocket = io(API_BASE_URL, {
+            path: "/socket.io/",
+            autoConnect: false,
+            transports: ['websocket', 'polling'] 
+        });
+        socketRef.current = newSocket;
+
+        newSocket.connect();
+        
+        // 2. Set Connection Listeners
+        newSocket.on('connect', () => {
+            console.log("connected vizuri");
+            setIsConnected(true);
+            setHistory([
+                { id: 'welcome', text: `Hello, ${userName}! A concierge will be with you shortly.`, sender: 'concierge' }
+            ]);
+        });
+
+        newSocket.on('connect_error', (err) => {
+            console.error('Socket Connection Error:', err.message);
+            setIsConnected(false);
+            setHistory(prev => [...prev, {
+                id: 'error-' + Date.now(), 
+                text: `Connection failed. Please refresh. Error: ${err.message}`, 
+                sender: 'system' 
+            }]);
+        });
+
+        newSocket.on('disconnect', () => {
+            setIsConnected(false);
+            sendTypingStatus(false); 
+            console.log('Socket disconnected.');
+        });
+
+        // 3. Listen for incoming messages
+        newSocket.on('chat message', (data) => {
+            if (data.user === conversationId) return;
+            
+            const newMessage = {
+                id: Date.now(),
+                text: data.message, 
+                sender: data.user === 'admin' ? 'concierge' : 'client', 
+            };
+            setHistory(prev => [...prev, newMessage]);
+        });
+    }
+    
+    // 4. Cleanup function
+    return () => {
+        if (socketRef.current) {
+            sendTypingStatus(false); 
+            socketRef.current.disconnect();
+            socketRef.current = null;
+            setIsConnected(false);
+            console.log('Socket disconnected on cleanup.');
+        }
+        debouncedStopTyping.cancel && debouncedStopTyping.cancel();
+    };
+}, [nameSubmitted, isOpen, userName, conversationId, sendTypingStatus, debouncedStopTyping]);
+
+
+
+
+
+//   useEffect(() => {
+//         if (nameSubmitted && isOpen && conversationId && !socketRef.current) {
+
+//             console.log(conversationId);
+            
+//             // 1. Connect
+//             // const newSocket = io(CLIENT_MESSAGE_URL);
+//             const newSocket = io(SERVER_URL, {
+//                 path: "/socket.io/",
+//                 autoConnect: false,
+//                 transports: ['websocket', 'polling'] 
+//             });
+//             socketRef.current = newSocket;
+
+//             newSocket.connect()
+            
+//             // 2. Set Connection Listeners
+//             newSocket.on('connect', () => {
+//                 console.log("connected vizuri");
+                
+//                 setIsConnected(true);
+//                 // console.log(`Socket connected as ${userName} (${conversationId})`);
+//                 setHistory([
+//                     { id: 'welcome', text: `Hello, ${userName}! A concierge will be with you shortly.`, sender: 'concierge' }
+//                 ]);
+//             });
+
+//             newSocket.on('connect_error', (err) => {
+//                 console.error('Socket Connection Error:', err.message);
+//                 setIsConnected(false); // Ensure button is disabled and state reflects failure
+//                 // Display error message to user
+//                 setHistory(prev => [...prev, {
+//                     id: 'error-' + Date.now(), 
+//                     text: `Connection failed. Please refresh. Error: ${err.message}`, 
+//                     sender: 'system' 
+//                 }]);
+//             });
+
+//             newSocket.on('disconnect', () => {
+//                 setIsConnected(false);
+//                 // Report stop typing on disconnection
+//                 sendTypingStatus(false); 
+//                 console.log('Socket disconnected.');
+//             });
+
+//             // 3. Listen for incoming messages (unchanged)
+//             newSocket.on('chat message', (data) => {
+//                 // Ignore messages sent by this client
+//                 if (data.user === conversationId) return; 
+
+//                 const newMessage = {
+//                     id: Date.now(),
+//                     text: data.message, 
+//                     sender: data.user === 'admin' ? 'concierge' : 'client', 
+//                 };
+//                 setHistory(prev => [...prev, newMessage]);
+//             });
+//         }
+        
+//         // 4. Cleanup function: disconnect the socket when unmounting or dependencies change
+//         return () => {
+//             if (socketRef.current) {
+//                 // Ensure stop typing is sent when the chat closes
+//                 sendTypingStatus(false); 
+//                 socketRef.current.disconnect();
+//                 socketRef.current = null;
+//                 setIsConnected(false);
+//                 console.log('Socket disconnected on cleanup.');
+//             }
+//             // Also ensure the debounced function is cleaned up
+//             debouncedStopTyping.cancel && debouncedStopTyping.cancel(); 
+//         };
+//     }, [nameSubmitted, isOpen, userName, conversationId, sendTypingStatus, debouncedStopTyping]); 
+    // Note: Debounced functions and useCallback dependencies require careful handling.
 
     // Scroll to bottom whenever history updates
     useEffect(() => {
         scrollToBottom();
     }, [history, isOpen]);
 
-    const handleNameSubmit = (e) => {
+const handleNameSubmit = (e) => {
         e.preventDefault();
         const cleanName = tempUserName.trim();
         if (cleanName) {
             setUserName(cleanName);
+            // 💡 FIX: Generate the truly unique and stable Conversation ID
+            const uniqueId = cleanName.replace(/\s/g, '_') + '-' + Date.now();
+            setConversationId(uniqueId);
+            
             setNameSubmitted(true);
-            setTempUserName(''); // Clear temp input
+            setTempUserName(''); 
         }
     };
 
 const toggleChat = () => {
-        // Reset state when closing
         if (isOpen) {
+             sendTypingStatus(false);
+             // 💡 FIX: Reset all conversation state variables on close
              setNameSubmitted(false);
              setUserName('');
+             setConversationId(null); // <-- Reset the ID
              setHistory([]);
              setTempUserName(''); 
              setMessage('');     
@@ -168,15 +327,19 @@ const toggleChat = () => {
         setIsOpen(!isOpen);
     };
 
- const handleSendMessage = (e) => {
+    const handleSendMessage = (e) => {
         e.preventDefault();
         const cleanMessage = message.trim();
-        // Use the connection status and ref for checks
-        if (cleanMessage === '' || !socketRef.current || !isConnected) return; 
+        if (cleanMessage === '' || !socketRef.current || !isConnected || !conversationId) return;
+
+        // 1. Ensure typing status is stopped after sending a message
+        debouncedStopTyping.cancel && debouncedStopTyping.cancel(); // Clear pending stop
+        sendTypingStatus(false);
 
         const messageData = {
-            user: userName, 
+            user: conversationId, 
             message: cleanMessage,
+            sender: 'client',
         };
         socketRef.current.emit('chat message', messageData);
 
@@ -187,38 +350,39 @@ const toggleChat = () => {
     };
     
     return (
-        <div className="fixed bottom-6 right-6 z-[100]">
-            {/* Chat Widget Wrapper */}
-            {isOpen && (
-                <div className="bg-white border border-gray-200 shadow-2xl rounded-xl w-80 h-[450px] mb-3 p-4 flex flex-col font-sans">
-                    {/* Header */}
-                    <div className="flex justify-between items-center pb-3 border-b border-gray-100">
-                        <h5 className="font-bold text-[#0f172a]">Elite Polish Live Chat</h5>
-                        <button onClick={toggleChat} className="text-gray-500 hover:text-red-500 p-1 rounded-full hover:bg-gray-100 transition">
-                            <X size={20} />
-                        </button>
-                    </div>
-                    
-                    {/* Conditional Content */}
-                    {nameSubmitted ? 
-                        <ChatWindow 
-                            history={history} 
-                            messagesEndRef={messagesEndRef} 
-                            message={message} 
-                            setMessage={setMessage} 
-                            handleSendMessage={handleSendMessage} 
-                            isConnected={isConnected} 
-                        /> 
-                        : 
-                        <NameForm 
-                            tempUserName={tempUserName} 
-                            setTempUserName={setTempUserName} 
-                            handleNameSubmit={handleNameSubmit} 
-                        />
-                    }
+             <div className="fixed bottom-6 right-6 z-[100]">
+                    {/* Chat Widget Wrapper */}
+                    {isOpen && (
+                        <div className="bg-white border border-gray-200 shadow-2xl rounded-xl w-80 h-[450px] mb-3 p-4 flex flex-col font-sans">
+                            {/* Header */}
+                            <div className="flex justify-between items-center pb-3 border-b border-gray-100">
+                                <h5 className="font-bold text-[#0f172a]">Elite Polish Live Chat</h5>
+                                <button onClick={toggleChat} className="text-gray-500 hover:text-red-500 p-1 rounded-full hover:bg-gray-100 transition">
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            
+                            {/* Conditional Content */}
+                            {nameSubmitted ? 
+                                <ChatWindow 
+                                    history={history} 
+                                    messagesEndRef={messagesEndRef} 
+                                    message={message} 
+                                    setMessage={setMessage} 
+                                    handleSendMessage={handleSendMessage} 
+                                    handleTyping={handleTyping} // <-- Passed down to input
+                                    isConnected={isConnected} 
+                                /> 
+                                : 
+                                <NameForm 
+                                    tempUserName={tempUserName} 
+                                    setTempUserName={setTempUserName} 
+                                    handleNameSubmit={handleNameSubmit} 
+                                />
+                            }
 
-                </div>
-            )}
+                        </div>
+                    )}
 
             {/* Main Floating Button (Trigger) */}
             {!isOpen && (

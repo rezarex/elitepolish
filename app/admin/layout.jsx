@@ -5,6 +5,7 @@ import AdminDashboardOverview from './page';
 import Booking from './Booking';
 import { API_BASE_URL } from '@/config/config';
 import Blog from './Blog';
+import Livechat from './Livechat';
 // --- CONFIGURATION & MOCK DATA ---
 
 // Keeping APIs defined for future integration
@@ -20,11 +21,7 @@ const MOCK_REVIEWS = [
   { id: 'R104', client: 'Anonymous', rating: 2, service: 'Interior Edit', date: '2025-11-18', content: 'One room was missed. They offered to come back, but it was an inconvenience.', status: 'Archived' },
 ];
 
-const MOCK_CHATS = [
-    { id: 'C001', client: 'Alex B.', lastMessage: 'Is weekend service available?', time: '10:30 AM', unread: 2, messages: [{ sender: 'client', text: 'Hi, I saw your services online. Are you available for a full home clean this Saturday?', time: '10:28 AM' }, { sender: 'admin', text: 'Hello Alex! We have a few slots available. What size is your home?', time: '10:30 AM' }, { sender: 'client', text: 'Is weekend service available?', time: '10:30 AM' }] },
-    { id: 'C002', client: 'Priya L.', lastMessage: 'Need to change my booking date.', time: 'Yesterday', unread: 0, messages: [{ sender: 'client', text: 'I need to reschedule my Transition clean from Friday to Monday. Is that possible?', time: 'Yesterday' }, { sender: 'admin', text: 'Let me check our availability for Monday. I will get back to you shortly!', time: 'Yesterday' }] },
-    { id: 'C003', client: 'Guest 123', lastMessage: 'What are your prices?', time: '1 hour ago', unread: 1, messages: [{ sender: 'client', text: 'What are your prices?', time: '1 hour ago' }] },
-];
+
 
 // const MOCK_BLOG_POSTS = [
 //     { id: 'P001', title: '5 Tips for Seasonal Deep Cleaning', author: 'Staff', date: '2025-12-01', status: 'Published', views: 1240 },
@@ -258,137 +255,11 @@ const ReviewsManagement = () => {
 
 // Live Chat Page (Unchanged)
 const LiveChat = () => {
-    const [chats, setChats] = useState(MOCK_CHATS); 
-    const [selectedChat, setSelectedChat] = useState(MOCK_CHATS[0]);
-    const [messageInput, setMessageInput] = useState('');
-    
-    useEffect(() => {
-      // API call to fetch chat list in a real app
-      if (chats.length > 0) {
-        setSelectedChat(chats[0]);
-      }
-    }, [chats]);
-
-    const handleSendMessage = () => {
-        if (!messageInput.trim()) return;
-
-        const newMessage = {
-            sender: 'admin',
-            text: messageInput.trim(),
-            time: 'Just now',
-        };
-
-        const newChats = chats.map(chat => {
-            if (chat.id === selectedChat.id) {
-                const newMessages = [...chat.messages, newMessage];
-                return { ...chat, messages: newMessages, lastMessage: newMessage.text, unread: 0 };
-            }
-            return chat;
-        });
-        
-        setChats(newChats);
-        setSelectedChat(prevChat => ({
-            ...prevChat,
-            messages: [...prevChat.messages, newMessage],
-            lastMessage: newMessage.text,
-            unread: 0,
-        }));
-
-        setMessageInput('');
-        
-        const chatWindow = document.getElementById('chat-messages');
-        if (chatWindow) {
-            // Wait for DOM update, then scroll
-            setTimeout(() => {
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-            }, 0);
-        }
-    };
-
-    const ChatMessage = ({ message }) => (
-        <div className={`flex mb-4 ${message.sender === 'admin' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-xl shadow-md ${
-                message.sender === 'admin' 
-                    ? 'bg-[#d4af37] text-white rounded-tr-none' 
-                    : 'bg-gray-200 text-slate-800 rounded-tl-none'
-            }`}>
-                <p className="text-sm">{message.text}</p>
-                <span className={`block text-xs mt-1 ${message.sender === 'admin' ? 'text-white/80' : 'text-gray-500'}`}>{message.time}</span>
-            </div>
-        </div>
-    );
-
-    return (
-        <div className="flex h-[calc(100vh-100px)] overflow-hidden rounded-lg shadow-xl bg-white">
-            {/* Conversation List Sidebar */}
-            <div className="w-80 bg-white border-r border-gray-200 flex-shrink-0">
-                <div className="p-4 border-b border-gray-200">
-                    <h2 className="text-lg font-serif text-[#0f172a] font-bold">Conversations</h2>
-                </div>
-                <div className="overflow-y-auto h-full pb-32">
-                    {chats.map(chat => (
-                        <div
-                            key={chat.id}
-                            onClick={() => setSelectedChat(chat)}
-                            className={`p-4 cursor-pointer border-b border-gray-100 transition-colors ${
-                                selectedChat?.id === chat.id ? 'bg-[#fcf8e5] border-l-4 border-[#d4af37]' : 'hover:bg-gray-50'
-                            }`}
-                        >
-                            <div className="flex justify-between items-center">
-                                <span className="font-semibold text-slate-900">{chat.client}</span>
-                                {chat.unread > 0 && (
-                                    <span className="text-xs bg-red-500 text-white w-5 h-5 flex items-center justify-center rounded-full">
-                                        {chat.unread}
-                                    </span>
-                                )}
-                            </div>
-                            <p className="text-sm text-gray-500 truncate">{chat.lastMessage}</p>
-                            <span className="text-xs text-gray-400">{chat.time}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Chat Window */}
-            <div className="flex-1 flex flex-col bg-gray-50">
-                {selectedChat ? (
-                    <>
-                        {/* Messages */}
-                        <div id="chat-messages" className="flex-1 overflow-y-auto p-6 space-y-4">
-                            {selectedChat.messages.map((msg, index) => (
-                                <ChatMessage key={index} message={msg} />
-                            ))}
-                        </div>
-
-                        {/* Input Area */}
-                        <div className="p-4 bg-white border-t">
-                            <div className="flex">
-                                <input
-                                    type="text"
-                                    placeholder="Type your reply here..."
-                                    value={messageInput}
-                                    onChange={(e) => setMessageInput(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                                    className="flex-1 p-3 border border-gray-300 rounded-l-lg focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
-                                />
-                                <button
-                                    onClick={handleSendMessage}
-                                    className="bg-[#0f172a] hover:bg-slate-700 text-white p-3 rounded-r-lg font-bold flex items-center justify-center transition disabled:opacity-50"
-                                    disabled={!messageInput.trim()}
-                                >
-                                    <Zap size={20} className="mr-1" /> Send
-                                </button>
-                            </div>
-                        </div>
-                    </>
-                ) : (
-                    <div className="flex items-center justify-center h-full text-gray-500">
-                        Select a conversation to start chatting.
-                    </div>
-                )}
-            </div>
-        </div>
-    );
+return (
+  <>
+    <Livechat/>
+  </>
+)
 };
 
 // --- Blog Sub-components ---
