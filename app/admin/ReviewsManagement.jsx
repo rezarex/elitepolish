@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { CheckCircle, Loader2, Star, Trash2, Clock } from 'lucide-react'; // Added Clock for Pending status
 import { API_BASE_URL } from '@/config/config';
+import toast from 'react-hot-toast';
 
 // --- API Configuration ---
 const REVIEWS_API = `${API_BASE_URL}/review`; 
+const REVIEWS_UPDATE_API = `${API_BASE_URL}/review/edit`; 
 const RETRY_ATTEMPTS = 3;
 
 // --- Helper Components & Map (Moved out for clarity) ---
 
 const REVIEW_STATUS_MAP = {
-  Published: { color: 'text-blue-600 bg-blue-100', icon: CheckCircle },
-  Pending: { color: 'text-amber-600 bg-amber-100', icon: Clock }, // Use Clock icon
-  Archived: { color: 'text-gray-600 bg-gray-100', icon: Trash2 },
+  published: { color: 'text-blue-600 bg-blue-100', icon: CheckCircle },
+  pending: { color: 'text-amber-600 bg-amber-100', icon: Clock }, // Use Clock icon
+  archived: { color: 'text-gray-600 bg-gray-100', icon: Trash2 },
 };
 
 const StatusPill = ({ status, map }) => {
@@ -89,20 +91,51 @@ const ReviewsMgt = () => {
         );
     }, [reviews, filter]);
 
-    const updateReviewStatus = (id, newStatus) => {
-        // Optimistic UI update: update the state first
-        setReviews(prevReviews => 
-            prevReviews.map(r => (r.id === id ? { ...r, status: newStatus } : r))
-        );
+const updateReviewStatus = async (id, newStatus) => {
+    // 1. Store the previous state in case we need to roll back
+    const previousReviews = [...reviews];
+
+    // 2. Optimistically update the UI immediately
+    setReviews(prevReviews =>
+        prevReviews.map(r => (r.id === id ? { ...r, status: newStatus } : r))
+    );
+
+    console.log(newStatus);
+    const loadingToast = toast.loading(`Updating status to ${newStatus}...`);
+    
+
+    try {
+        // 3. Send the PATCH/PUT request to the server
+        const response = await fetch(`${REVIEWS_API}/${id}`, {
+            method: 'PUT', // or 'PUT' depending on your backend setup
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: newStatus }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update status on the server');
+        }
+
+        toast.success(`Review ${newStatus}!`, { id: loadingToast });
+        // alert(`Success! Review status has been changed to ${newStatus}.`);
+
+        // Optional: If your API returns the updated object, 
+        // you could sync it here to ensure data consistency.
+        // const updatedReview = await response.json();
+
+    } catch (err) {
+        console.error("API Update Error:", err);
         
-        // --- NOTE: In a real app, you would add an API call here to persist the change ---
-        // try {
-        //     await fetch(`${REVIEWS_API}/${id}`, { method: 'PUT', ... });
-        // } catch (e) {
-        //     // Revert state if API call fails
-        //     console.error("Failed to update status on API", e);
-        // }
-    };
+        // 4. Rollback: If the API fails, revert to the original state
+        setReviews(previousReviews);
+        
+        // Notify the user of the failure
+        // alert("Failed to update review status. Please try again.");
+        toast.error("Failed to update status. Reverting changes.", { id: loadingToast });
+    }
+};
 
     if (loading) return <div className="p-8 flex items-center justify-center"><Loader2 className="animate-spin mr-3" size={24} /> Loading Reviews...</div>;
     if (error) return <div className="p-6 bg-red-100 border-l-4 border-red-500 text-red-700">Error: {error}</div>;
@@ -127,51 +160,60 @@ const ReviewsMgt = () => {
             </div>
             
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredReviews.length > 0 ? (
-                filteredReviews.map(review => (
-                    // Added a check for 'experience' or 'content' field as the mock had 'experience' and the card was trying to use 'content'
-                    <div key={review.id} className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#d4af37]">
-                        <div className="flex justify-between items-start mb-3">
-                            <div className="font-bold text-lg text-slate-800">{review.client}</div>
-                            <StatusPill status={review.status} map={REVIEW_STATUS_MAP} />
-                        </div>
-                        <div className="flex mb-3">
-                            {[...Array(review.rating)].map((_, i) => (
-                                <Star key={i} size={16} fill="#d4af37" stroke="none" className="text-[#d4af37]" />
-                            ))}
-                            {[...Array(5 - (review.rating || 0))].map((_, i) => (
-                                <Star key={i + (review.rating || 0)} size={16} className="text-gray-300" />
-                            ))}
-                        </div>
-                        <p className="text-sm italic text-gray-700 mb-4 line-clamp-3">
-                            "{review.experience || review.content || 'No review content available.'}"
-                        </p>
-                        <div className="text-xs text-gray-500 mb-4">
-                            Service: {review.service} | Date: {review.date}
-                        </div>
-                        <div className="flex space-x-2 border-t pt-4">
-                            <button
-                                onClick={() => updateReviewStatus(review.id, 'Published')}
-                                disabled={review.status === 'Published'}
-                                className="flex items-center text-xs px-3 py-1 bg-green-500 text-white rounded-full hover:bg-green-600 disabled:opacity-50"
-                            >
-                                <CheckCircle size={14} className="mr-1" /> Publish
-                            </button>
-                            <button
-                                onClick={() => updateReviewStatus(review.id, 'Archived')}
-                                disabled={review.status === 'Archived'}
-                                className="flex items-center text-xs px-3 py-1 bg-red-500 text-white rounded-full hover:bg-red-600 disabled:opacity-50"
-                            >
-                                <Trash2 size={14} className="mr-1" /> Archive
-                            </button>
-                        </div>
-                    </div>
-                ))
-            ) : (
-                <div className="col-span-full py-12 text-center text-gray-500 text-lg bg-white rounded-lg shadow-md">
-                    No reviews match the current filter.
-                </div>
-            )}
+                    {filteredReviews.map(review => {
+                        // 1. Normalize data from API
+                        const ratingInt = parseInt(review.rating, 10) || 0;
+                        // Normalize status to start with Capital letter to match your Status Map
+                        const normalizedStatus = review.status.charAt(0).toUpperCase() + review.status.slice(1);
+
+                        return (
+                            <div key={review._id} className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#d4af37]">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="font-bold text-lg text-slate-800">{review.name}</div>
+                                    <StatusPill status={normalizedStatus} map={REVIEW_STATUS_MAP} />
+                                </div>
+                                
+                                {/* Corrected Star Rendering */}
+                                <div className="flex mb-3">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star 
+                                            key={i} 
+                                            size={16} 
+                                            fill={i < ratingInt ? "#d4af37" : "none"} 
+                                            stroke={i < ratingInt ? "none" : "#d1d5db"} 
+                                            className={i < ratingInt ? "text-[#d4af37]" : "text-gray-300"} 
+                                        />
+                                    ))}
+                                </div>
+
+                                <p className="text-sm italic text-gray-700 mb-4 line-clamp-3">
+                                    "{review.experience || "No feedback provided."}"
+                                </p>
+                                
+                                <div className="text-xs text-gray-500 mb-4">
+                                    {/* Date formatting for MongoDB ISO strings */}
+                                    Date: {new Date(review.createdAt).toLocaleDateString()}
+                                </div>
+
+                                <div className="flex space-x-2 border-t pt-4">
+                                    <button
+                                        onClick={() => updateReviewStatus(review._id, 'published')}
+                                        disabled={review.status === 'published'}
+                                        className="flex items-center text-xs px-3 py-1 bg-green-500 text-white rounded-full hover:bg-green-600 disabled:opacity-50"
+                                    >
+                                        <CheckCircle size={14} className="mr-1" /> Publish
+                                    </button>
+                                    <button
+                                        onClick={() => updateReviewStatus(review._id, 'archived')}
+                                        disabled={review.status === 'archived'}
+                                        className="flex items-center text-xs px-3 py-1 bg-red-500 text-white rounded-full hover:bg-red-600 disabled:opacity-50"
+                                    >
+                                        <Trash2 size={14} className="mr-1" /> Archive
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
             </div>
         </div>
     );

@@ -50,7 +50,7 @@ const FloatingReviews = () => {
 
   const totalReviews = reviews.length;
   const averageRating = totalReviews > 0 
-    ? (reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1) 
+    ? (reviews.reduce((sum, review) => sum + parseInt(review.rating), 0) / totalReviews).toFixed(1) 
     : 0;
 
   const renderStars = (rating, size = 14) => (
@@ -214,7 +214,7 @@ const FloatingReviews = () => {
               >
                 <div className="flex justify-between items-center text-sm">
                     <span className="font-semibold text-gray-500">{review.name}</span>
-                    <div className="flex">{renderStars(review.rating, 14)}</div>
+                    <div className="flex">{renderStars(parseInt(review.rating), 14)}</div>
                 </div>
                 <p className="text-xs text-gray-600 italic mt-1 line-clamp-2">"{review.experience}"</p>
                 {review.isNew && <span className="text-xs text-green-600 font-medium"> (New/Pending)</span>}

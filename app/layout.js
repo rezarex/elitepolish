@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LiveChatButton from '../components/LiveChatButton';
 import FloatingReviews from '../components/FloatingReviews';
+import { Toaster } from 'react-hot-toast';
 
 const playfair = Playfair_Display({ 
   subsets: ['latin'], 
@@ -27,6 +28,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${playfair.variable} ${lato.variable}`}>
       <body className="bg-[#faf9f6] text-slate-800">
+        <Toaster position="top-center" reverseOrder={false} />
         <Navbar />
         {children}
         <Footer />

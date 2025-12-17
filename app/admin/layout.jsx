@@ -7,6 +7,7 @@ import { API_BASE_URL } from '@/config/config';
 import Blog from './Blog';
 import Livechat from './Livechat';
 import ReviewsMgt from './ReviewsManagement';
+import SiteSettings from './Settings';
 // --- CONFIGURATION & MOCK DATA ---
 
 // Keeping APIs defined for future integration
@@ -144,6 +145,15 @@ const BookingsDashboard = () => {
   )
 };
 
+
+const SettingsPage = () => {
+    return (
+      <div>
+        <SiteSettings/>
+      </div>
+  )
+};
+
 // Reviews Page (Unchanged)
 const ReviewsManagement = () => {
 return (
@@ -207,7 +217,7 @@ export default function AdminApp() {
     'live-chat': { component: LiveChat, title: 'Live Customer Support' },
     'blog': { component: BlogManagement, title: 'Blog Content' },
     // 'clients': { component: PlaceholderPage, title: 'Client Database' },
-    'settings': { component: PlaceholderPage, title: 'Application Settings' },
+    'settings': { component: SiteSettings, title: 'Application Settings' },
   };
 
   const { component: CurrentComponent, title: pageTitle } = VIEW_MAP[currentView] || VIEW_MAP['bookings'];

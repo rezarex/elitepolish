@@ -2,63 +2,44 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { API_BASE_URL } from '@/config/config';
 
-// --- MOCK DATA SOURCE (Will be replaced by API call) ---
-const MOCK_POSTS = [
-  {
-    slug: "eco-friendly-clean-future",
-    title: "The Eco-Friendly Future of Luxury Cleaning",
-    date: "November 28, 2025",
-    summary: "Discover how Elite Polish is embracing sustainable practices and non-toxic products without compromising on quality or shine.",
-    image: "https://placehold.co/600x400/0f172a/d4af37?text=ECO+CLEAN",
-  },
-  {
-    slug: "winter-maintenance-guide",
-    title: "Your Comprehensive Guide to Winter Home Maintenance",
-    date: "December 5, 2025",
-    summary: "Tips and tricks from our experts on maintaining pristine conditions during the harshest months of the year.",
-    image: "https://placehold.co/600x400/0f172a/d4af37?text=WINTER+TIPS",
-  },
-  {
-    slug: "five-star-clean-standards",
-    title: "What Does 'Five-Star Clean' Really Mean?",
-    date: "October 1, 2025",
-    summary: "A deep dive into the rigorous training and checklist our concierge team uses to deliver unmatched results.",
-    image: "https://placehold.co/600x400/0f172a/d4af37?text=STANDARDS",
-  },
-];
+const BLOG_API = `${API_BASE_URL}/posts`; 
 
-// ------------------------------------
-
-// Simulated asynchronous data fetching function (now local to the component structure)
-async function fetchBlogPosts() {
-  await new Promise(resolve => setTimeout(resolve, 50)); 
-  return MOCK_POSTS;
-}
-
-// REMOVED 'async' keyword here to fix the error
 export default function BlogList() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Client-side fetch using useEffect
     const loadPosts = async () => {
-      const fetchedPosts = await fetchBlogPosts();
-      setPosts(fetchedPosts);
-      setLoading(false);
+      try {
+        const response = await fetch(BLOG_API);
+        if (!response.ok) {
+          throw new Error('Failed to fetch blog posts');
+        }
+        const data = await response.json();
+        setPosts(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     };
     loadPosts();
   }, []);
 
   if (loading) {
-    // Simple loading state while data is being fetched
     return (
       <section className="py-20 px-6 max-w-7xl mx-auto text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d4af37] mx-auto"></div>
         <p className="mt-4 text-gray-600">Loading Elite Polish Journal...</p>
       </section>
     );
+  }
+
+  if (error) {
+    return <div className="text-center py-20 text-red-500">Error: {error}</div>;
   }
   
   return (
@@ -74,26 +55,39 @@ export default function BlogList() {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
         {posts.map((post) => (
           <article 
-            key={post.slug} 
+            key={post._id} // Changed from post.slug to post._id for better stability
             className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col hover:shadow-2xl transition duration-300"
           >
-            <Link href={`/blog/${post.slug}`} className="block">
+            <Link href={`/blog/${post._id}`} className="block">
               <img 
                 src={post.image} 
                 alt={post.title} 
                 className="w-full h-48 object-cover" 
-                onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/600x400/0f172a/d4af37?text=Elite Polish"; }}
+                onError={(e) => { 
+                    e.currentTarget.onerror = null; 
+                    e.currentTarget.src = "https://placehold.co/600x400/0f172a/d4af37?text=Elite Polish"; 
+                }}
               />
             </Link>
             <div className="p-6 flex flex-col flex-grow">
-              <p className="text-sm text-gray-500 mb-2">{post.date}</p>
+              {/* Changed post.date to new Date(post.createdAt).toLocaleDateString() */}
+              <p className="text-sm text-gray-500 mb-2">
+                {new Date(post.createdAt).toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                })}
+              </p>
               <h3 className="font-serif text-2xl text-[#0f172a] mb-3 leading-snug">
-                <Link href={`/blog/${post.slug}`} className="hover:text-[#d4af37] transition">
+                <Link href={`/blog/${post._id}`} className="hover:text-[#d4af37] transition">
                   {post.title}
                 </Link>
               </h3>
-              <p className="text-gray-600 mb-4 flex-grow">{post.summary}</p>
-              <Link href={`/blog/${post.slug}`} className="text-[#d4af37] font-semibold hover:text-[#0f172a] transition self-start">
+              {/* Changed post.summary to post.desc */}
+              <p className="text-gray-600 mb-4 flex-grow line-clamp-3">
+                {post.desc}
+              </p>
+              <Link href={`/blog/${post._id}`} className="text-[#d4af37] font-semibold hover:text-[#0f172a] transition self-start">
                 Read Article &rarr;
               </Link>
             </div>
