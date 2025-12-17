@@ -69,7 +69,7 @@ const SiteSettings = () => {
         const loadingToast = toast.loading(`Changing role to ${newRole}...`);
 
         try {
-            const response = await fetch(`${AUTH_API}/editUser/${userId}`, {
+            const response = await fetch(`${AUTH_API}/edit/${userId}`, {
                 method: 'PUT', // or PATCH based on your backend
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ role: newRole }),
