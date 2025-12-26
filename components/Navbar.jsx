@@ -3,16 +3,43 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const controlNavbar = () => {
+      if (typeof window !== 'undefined') {
+        // If scrolling down, hide navbar. If scrolling up, show navbar.
+        if (window.scrollY > lastScrollY && window.scrollY > 100) {
+          setIsVisible(false);
+        } else {
+          setIsVisible(true);
+        }
+        setLastScrollY(window.scrollY);
+      }
+    };
+
+    window.addEventListener('scroll', controlNavbar);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', controlNavbar);
+    };
+  }, [lastScrollY]);
 
   return (
-    <nav className="sticky top-0 z-50 bg-[#F0FFFF] opacity-50 text-gray-800 shadow-lg font-sans">
+    <nav 
+      className={`fixed top-0 left-0 w-full z-50 bg-[#F0FFFF]/80 backdrop-blur-md text-gray-800 shadow-lg font-sans transition-transform duration-300 ${
+        isVisible ? 'translate-y-0' : '-translate-y-full'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         <Link href="/" className="hover:text-[#d4af37] transition">
-          <Image  src="/logo.png" alt="Logo" width={60} height={20} />
+          <Image src="/logo.png" alt="Logo" width={60} height={20} />
         </Link>
 
         {/* Desktop Links */}
@@ -35,10 +62,10 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu Dropdown */}
-      {isOpen && (
-        <div className="md:hidden bg-[#1e293b] p-4 space-y-4 text-center border-t border-slate-700">
-          <Link href="#services" className="block hover:text-[#d4af37]" onClick={() => setIsOpen(false)}>Collections</Link>
-          <Link href="#about" className="block hover:text-[#d4af37]" onClick={() => setIsOpen(false)}>Standards</Link>
+      {isOpen && (isVisible) && (
+        <div className="md:hidden bg-white p-4 space-y-4 text-center border-t border-gray-200">
+          <Link href="/gallery" className="block hover:text-[#d4af37]" onClick={() => setIsOpen(false)}>Gallery</Link>
+          <Link href="/services" className="block hover:text-[#d4af37]" onClick={() => setIsOpen(false)}>Services</Link>
           <button className="w-full bg-[#d4af37] text-white py-3 mt-4 rounded-sm font-bold">Book Now</button>
         </div>
       )}

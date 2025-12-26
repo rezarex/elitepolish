@@ -1,8 +1,11 @@
+import Footer from '@/components/Footer';
+import Navbar from '@/components/Navbar';
 import React from 'react';
 
 export default function ContactUsPage() {
   return (
-    <main className="min-h-[70vh] flex items-center justify-center bg-white p-6">
+    <main className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-white p-6">
+      <Navbar/>
       <div className="text-center max-w-lg p-10 bg-gray-50 rounded-xl shadow-lg">
         <h1 className="font-serif text-4xl text-[#0f172a] mb-4">Contact Elite Polish</h1>
         <p className="text-gray-600 mb-6">
@@ -22,6 +25,7 @@ export default function ContactUsPage() {
           </button>
         </form>
       </div>
+      {/* <Footer/> */}
     </main>
   );
 }

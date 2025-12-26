@@ -3,6 +3,8 @@ import React from 'react';
 import Link from 'next/link';
 // Added Briefcase icon here
 import { Sparkles, Home, Diamond, Clock, Heart, Sun, MessageSquare, Briefcase } from 'lucide-react';
+import Navbar from './Navbar';
+import Footer from './Footer';
 
 // Mock data for service details (Updated to user's requested services)
 const detailedServices = [
@@ -42,6 +44,7 @@ const featuresList = [
 export default function ServicesPage() {
   return (
     <main className="min-h-screen bg-[#faf9f6] font-sans">
+      <Navbar/>
       
       {/* Hero Section */}
       <section className="bg-[#0f172a] text-white py-24 text-center">
@@ -119,7 +122,7 @@ export default function ServicesPage() {
           </div>
         </div>
       </section>
-
+          <Footer/>
     </main>
   );
 }

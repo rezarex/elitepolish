@@ -29,9 +29,9 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${playfair.variable} ${lato.variable}`}>
       <body className="bg-[#faf9f6] text-slate-800">
         <Toaster position="top-center" reverseOrder={false} />
-        <Navbar />
+        {/* <Navbar /> */}
         {children}
-        <Footer />
+        {/* <Footer /> */}
         <LiveChatButton /> 
         <FloatingReviews/>
       </body>

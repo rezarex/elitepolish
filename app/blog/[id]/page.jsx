@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { API_BASE_URL } from '@/config/config';
+import Navbar from '@/components/Navbar';
 
 export default function SingleBlogPost() {
   const params = useParams(); // params.id will match the folder name [id]
@@ -34,7 +35,8 @@ export default function SingleBlogPost() {
 
   return (
     <article className="max-w-4xl mx-auto py-20 px-6">
-      <header className="mb-10 text-center">
+      <Navbar/>
+      <header className="mt-[80px] mb-10 text-center">
         <h1 className="text-5xl font-serif mb-4">{post.title}</h1>
         <p className="text-gray-500">By {post.author} • {new Date(post.createdAt).toLocaleDateString()}</p>
       </header>

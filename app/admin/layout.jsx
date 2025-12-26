@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect, useMemo } from 'react';
-import { LayoutDashboard, Users, Calendar, Settings, Search, Edit, CheckCircle, XCircle, Clock, Loader2, MessageSquare, Star, Trash2, Rss, PlusCircle, PenTool, Eye, Zap, Save, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Settings, Search, Edit, CheckCircle, XCircle, Clock, Loader2, LogOut, MessageSquare, Star, Trash2, Rss, PlusCircle, PenTool, Eye, Zap, Save, ChevronLeft } from 'lucide-react';
 import AdminDashboardOverview from './page';
 import Booking from './Booking';
 import { API_BASE_URL } from '@/config/config';
@@ -8,7 +8,8 @@ import Blog from './Blog';
 import Livechat from './Livechat';
 import ReviewsMgt from './ReviewsManagement';
 import SiteSettings from './Settings';
-// --- CONFIGURATION & MOCK DATA ---
+import AuthPage from '@/components/Auth';
+import toast from 'react-hot-toast';
 
 // Keeping APIs defined for future integration
 const REVIEWS_API = `${API_BASE_URL}/reviews`; 
@@ -87,20 +88,34 @@ const StatusPill = ({ status, map = STATUS_MAP }) => {
 };
 
 // Sidebar component (from Layout folder concept)
-const Sidebar = ({ currentView, setView }) => {
-  const navItems = [
+const Sidebar = ({ currentView, setView, onLogout,userEmail }) => {
+const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, view: 'dashboard' },
     { name: 'Bookings', icon: Calendar, view: 'bookings' },
     { name: 'Reviews', icon: Star, view: 'reviews' },
     { name: 'Live Chat', icon: MessageSquare, view: 'live-chat' },
     { name: 'Blog', icon: Rss, view: 'blog' }, 
-    // { name: 'Clients', icon: Users, view: 'clients' },
     { name: 'Settings', icon: Settings, view: 'settings' },
   ];
 
   return (
-    <div className="w-64 bg-slate-800 text-white flex flex-col p-4 shadow-xl flex-shrink-0">
-      <div className="text-2xl font-serif text-[#d4af37] mb-8 p-2 border-b border-slate-700">Elite Polish Admin</div>
+ <div className="w-64 bg-slate-800 text-white flex flex-col p-4 shadow-xl flex-shrink-0">
+      <div className="text-2xl font-serif text-[#d4af37] mb-8 p-2 border-b border-slate-700">
+        Elite Polish Admin
+      </div>
+      <div className="mb-6 pb-4 border-b border-slate-700 px-2">
+        <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-1">Administrator</div>
+        <div className="text-sm font-medium text-slate-200 truncate mb-3" title={userEmail}>
+          {userEmail || 'admin@elitepolish.ca'}
+        </div>
+        <button 
+          onClick={onLogout}
+          className="flex items-center text-xs text-red-400 hover:text-red-300 transition-colors font-semibold"
+        >
+          <LogOut size={14} className="mr-2" />
+          Sign Out
+        </button>
+      </div>
       <nav className="flex-grow space-y-2">
         {navItems.map(item => (
           <button
@@ -115,9 +130,19 @@ const Sidebar = ({ currentView, setView }) => {
           </button>
         ))}
       </nav>
-      <div className="text-sm text-slate-500 border-t border-slate-700 pt-4 mt-4">
-        User: admin@elitepolish.ca
-      </div>
+{/* <div className="mt-auto pt-4 border-t border-slate-700">
+        <button 
+          onClick={onLogout}
+          className="flex items-center w-full p-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors font-medium"
+        >
+          <LogOut size={20} className="mr-3" />
+          Logout
+        </button>
+        <div className="text-xs text-slate-400 mt-4 px-2 break-all italic">
+          Logged in as:<br/>
+          <span className="text-slate-200 antialiased">{userEmail || 'Admin User'}</span>
+        </div>
+      </div> */}
     </div>
   );
 };
@@ -206,44 +231,79 @@ const DashboardPage = () => {
 // --- Main Admin Panel App (Layout Orchestration) ---
 
 export default function AdminApp() {
-  const [isAuth, setIsAuth] = useState(true);
-  const [currentView, setCurrentView] = useState('blog'); 
+  const [isAuth, setIsAuth] = useState(false);
+  const [userData, setUserData] = useState({ email: '', token: '', id: '' });
+  const [currentView, setCurrentView] = useState('dashboard');
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mapping views to their corresponding component and title
+  // Check for existing session on mount
+  useEffect(() => {
+    const savedToken = localStorage.getItem('adminToken');
+    const savedEmail = localStorage.getItem('adminEmail');
+    
+    if (savedToken && savedEmail) {
+      setUserData({ email: savedEmail, token: savedToken });
+      setIsAuth(true);
+    }
+    setIsLoading(false);
+  }, []);
+
+  const handleAuthSuccess = (token, id, email) => {
+    // 1. Save to LocalStorage for persistence
+    localStorage.setItem('adminToken', token);
+    localStorage.setItem('adminEmail', email);
+    localStorage.setItem('userId', id);
+
+    // 2. Update State
+    setUserData({ email, token, id });
+    setIsAuth(true);
+  };
+
+  const handleLogout = () => {
+    // 1. Clear LocalStorage
+    localStorage.clear(); // Removes everything
+    
+    // 2. Reset State
+    setUserData({ email: '', token: '', id: '' });
+    setIsAuth(false);
+    
+    // 3. Reset view to dashboard for next login
+    setCurrentView('dashboard');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="animate-spin text-[#d4af37]" size={48} />
+      </div>
+    );
+  }
+
+  // If not authenticated, show the AuthPage
+  if (!isAuth) { //<AuthPage  />
+    return <AuthPage onAuthSuccess={handleAuthSuccess}/>;
+  }
+
+  // Define your View Map as before...
   const VIEW_MAP = {
     'dashboard': { component: DashboardPage, title: 'Dashboard Overview' },
     'bookings': { component: BookingsDashboard, title: 'Booking Management' },
     'reviews': { component: ReviewsManagement, title: 'Client Reviews' },
     'live-chat': { component: LiveChat, title: 'Live Customer Support' },
     'blog': { component: BlogManagement, title: 'Blog Content' },
-    // 'clients': { component: PlaceholderPage, title: 'Client Database' },
     'settings': { component: SiteSettings, title: 'Application Settings' },
   };
 
-  const { component: CurrentComponent, title: pageTitle } = VIEW_MAP[currentView] || VIEW_MAP['bookings'];
+  const { component: CurrentComponent, title: pageTitle } = VIEW_MAP[currentView] || VIEW_MAP['dashboard'];
 
-  if (!isAuth) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-100 font-sans">
-        <div className="p-8 bg-white shadow-xl rounded-lg w-96 text-center">
-          <h2 className="text-3xl font-serif text-[#0f172a] mb-6">Admin Login</h2>
-          <p className="text-sm text-gray-500 mb-4">Simulated Auth: Click to proceed.</p>
-          <button 
-            onClick={() => setIsAuth(true)}
-            className="w-full bg-[#0f172a] hover:bg-slate-700 text-white p-3 rounded-md font-bold transition"
-          >
-            Log In (Simulated)
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // The main layout combines the Sidebar and the ContentWrapper, 
-  // with the CurrentComponent being loaded as a "child" inside the ContentWrapper.
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans">
-      <Sidebar currentView={currentView} setView={setCurrentView} />
+      <Sidebar 
+        currentView={currentView} 
+        setView={setCurrentView} 
+        onLogout={handleLogout}
+        userEmail={userData.email} // Pass the dynamic email here
+      />
       <ContentWrapper title={pageTitle}>
         <CurrentComponent title={pageTitle} />
       </ContentWrapper>

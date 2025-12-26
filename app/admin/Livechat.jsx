@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Zap, Loader, RefreshCw, MessageCircle } from 'lucide-react'; 
 // NOTE: Assuming your config file structure is correct for the import path
 import {CHAT_CONFIG} from '@/config/config';
+import toast from 'react-hot-toast';
 
 
 // --- Utility Functions for Data Transformation (Unchanged) ---
@@ -281,6 +282,7 @@ const handleSelectChat = (chat) => {
             });
 
             if (!response.ok) {
+                toast.error("Failed to send message.")
                 throw new Error(`Failed to send message: ${response.status}`);
             }
             
@@ -317,7 +319,8 @@ const handleSelectChat = (chat) => {
 
         } catch (error) {
             console.error('Error sending message:', error);
-            alert('Failed to send message. Please try again.'); 
+            // alert('Failed to send message. Please try again.'); 
+            toast.error('Failed to send message.')
         } finally {
             setIsSending(false);
         }
@@ -418,7 +421,7 @@ const handleSelectChat = (chat) => {
                                     value={messageInput}
                                     onChange={(e) => setMessageInput(e.target.value)}
                                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                                    className="flex-1 p-3 border border-gray-300 rounded-l-lg focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
+                                    className="flex-1 p-3 border text-gray-600 border-gray-300 rounded-l-lg focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
                                     disabled={isSending}
                                 />
                                 <button

@@ -24,7 +24,7 @@ const galleryItems = [
 
 export default function Gallery() {
   return (
-    <section className="py-20 px-6 bg-white font-sans">
+    <section className="min-h-[calc(100vh-80px)] mt-[80px] py-20 px-6 bg-white font-sans">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <span className="text-[#d4af37] font-bold tracking-widest text-sm uppercase">The Proof is in the Polish</span>

@@ -174,7 +174,7 @@ const BlogEditor = ({ editingPostId, onFinish, onCancel, loadPosts }) => {
                             value={formData.title}
                             onChange={handleInputChange}
                             placeholder="e.g., 5 Tips for Seasonal Deep Cleaning"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#d4af37] focus:border-[#d4af37]"
+                            className="w-full p-3 border border-gray-300 text-gray-600 rounded-lg focus:ring-[#d4af37] focus:border-[#d4af37]"
                             required
                         />
                     </div>
@@ -187,7 +187,7 @@ const BlogEditor = ({ editingPostId, onFinish, onCancel, loadPosts }) => {
                             value={formData.author}
                             onChange={handleInputChange}
                             placeholder="Admin Name"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#d4af37] focus:border-[#d4af37]"
+                            className="w-full p-3 text-gray-500 border border-gray-300 rounded-lg focus:ring-[#d4af37] focus:border-[#d4af37]"
                             required
                         />
                     </div>
@@ -198,7 +198,7 @@ const BlogEditor = ({ editingPostId, onFinish, onCancel, loadPosts }) => {
                             name="status"
                             value={formData.status}
                             onChange={handleInputChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#d4af37] focus:border-[#d4af37]"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#d4af37] text-gray-600 focus:border-[#d4af37]"
                         >
                             <option value="Draft">Draft</option>
                             <option value="Published">Published</option>
@@ -241,7 +241,7 @@ const BlogEditor = ({ editingPostId, onFinish, onCancel, loadPosts }) => {
                         onChange={handleInputChange}
                         rows="3"
                         placeholder="A brief summary of the post..."
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#d4af37] focus:border-[#d4af37]"
+                        className="w-full text-gray-600 p-3 border border-gray-300 rounded-lg focus:ring-[#d4af37] focus:border-[#d4af37]"
                     ></textarea>
                 </div>
 
@@ -250,7 +250,7 @@ const BlogEditor = ({ editingPostId, onFinish, onCancel, loadPosts }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Post Content (WYSIWYG Editor)
                     </label>
-                    <Editor value={formData.content} onChange={handleEditorChange} className="min-h-[300px]" >
+                    <Editor value={formData.content} onChange={handleEditorChange} className="min-h-[300px] text-gray-600" >
                             <Toolbar>
                                 <BtnBold />
                                 <BtnItalic />
@@ -260,7 +260,7 @@ const BlogEditor = ({ editingPostId, onFinish, onCancel, loadPosts }) => {
                                 
                             </Toolbar>
                     </Editor>
-                    <p className="mt-2 text-xs text-gray-500">The content (HTML) is mapped to the 'body' field in the API request.</p>
+                   
                 </div>
                 {/* --- End WYSIWYG Editor --- */}
 
