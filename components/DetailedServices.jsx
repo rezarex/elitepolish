@@ -1,44 +1,35 @@
-'use client'
+'use client';
 import React from 'react';
 import Link from 'next/link';
-// Added Briefcase icon here
-import { Sparkles, Home, Diamond, Clock, Heart, Sun, MessageSquare, Briefcase } from 'lucide-react';
+import { Home, Briefcase, Wrench, Clock, MessageSquare, ChevronRight, Heart, Sun, Diamond } from 'lucide-react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
-// Mock data for service details (Updated to user's requested services)
 const detailedServices = [
   {
     icon: Home,
-    title: "Residential Cleaning",
-    desc: "Our signature luxury housekeeping for private homes. Includes deep cleaning of kitchens, bathrooms, and living areas.",
-    duration: "1 hr 30 min",
-    image: 'livingroom.png', // New image field
-    key: "residence"
+    title: "House Cleaning",
+    desc: "Comprehensive care for your sanctuary. From recurring maintenance and deep cleans to specialized move-in/out transitions and 5-star Airbnb turnovers.",
+    duration: "Flexible",
+    image: '/house-clean.png', 
+    link: "/services/house-cleaning",
   },
   {
     icon: Briefcase,
     title: "Office Cleaning",
-    desc: "Professional and discreet sanitation services for small to medium-sized corporate offices, optimized for after-hours scheduling.",
-    duration: "1 hr",
-    image: 'office.png', // New image field
-    key: "office"
+    desc: "Clinical-grade sanitation for medical suites and professional corporate offices. We also provide heavy-duty post-construction debris removal.",
+    duration: "Per Contract",
+    image: '/office-clean.png', 
+    link: "/services/office-cleaning",
   },
   {
-    icon: Sparkles,
-    title: "Specialty Cleaning",
-    desc: "Tailored services for major events: post-construction debris removal, pre-sale staging, and comprehensive move-in/move-out cleans.",
-    duration: "45 min",
-    image: 'specialty.png', // New image field
-    key: "specialty"
+    icon: Wrench,
+    title: "Specialty & Handywork",
+    desc: "Expert property maintenance including high-pressure washing, gutter and roof care, and professional handyman repairs for home and office.",
+    duration: "Project Based",
+    image: '/specialty-clean.png', 
+    link: "/services/specialty",
   },
-];
-
-const featuresList = [
-  { icon: Heart, text: 'Customized Clean Checklists' },
-  { icon: Sun, text: 'Eco-Friendly, Non-Toxic Products' },
-  { icon: Diamond, text: 'Trained & Vetted Concierge Teams' },
-  { icon: Clock, text: 'Flexible Scheduling Options' },
 ];
 
 export default function ServicesPage() {
@@ -47,82 +38,84 @@ export default function ServicesPage() {
       <Navbar/>
       
       {/* Hero Section */}
-      <section className="bg-[#0f172a] text-white py-24 text-center">
-        <div className="max-w-4xl mx-auto px-6">
+      <section className="bg-[#0f172a] text-white py-32 text-center">
+        <div className="max-w-4xl mx-auto px-6 text-center">
           <span className="text-[#d4af37] font-bold tracking-widest text-sm uppercase">Our Collections</span>
-          <h1 className="font-serif text-5xl md:text-6xl mt-4 mb-6">A New Standard of Clean</h1>
+          <h1 className="font-serif text-5xl md:text-6xl mt-4 mb-6 italic">A New Standard of Property Care</h1>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-            Explore our meticulously crafted service collections, each designed to deliver unmatched clarity and luxury to your home environment.
+            From meticulous interior housekeeping to professional office sanitation and expert handyman repairs.
           </p>
-          <Link href="/schedule" className="mt-8 inline-block bg-[#d4af37] text-[#0f172a] font-bold py-3 px-8 rounded-lg text-lg hover:bg-white transition duration-300 shadow-lg">
-            Book Your Consultation
-          </Link>
         </div>
       </section>
 
-      {/* Detailed Services Section */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
-        <h2 className="font-serif text-4xl text-[#0f172a] text-center mb-12">Our Core Service Offerings</h2>
-        
-        <div className="space-y-12">
-          {detailedServices.map((service) => (
-            <div key={service.key} className="bg-white p-8 lg:p-10 shadow-xl rounded-lg grid md:grid-cols-3 gap-8 items-center border-l-4 border-[#0f172a] hover:shadow-2xl transition duration-300">
+      {/* Grid Services Section */}
+      <section className="py-24 px-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          {detailedServices.map((service, index) => (
+            <div key={index} className="group flex flex-col bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100">
               
-              {/* Column 1: Description */}
-              <div>
-                <service.icon size={48} className="text-[#d4af37] mb-4" />
-                <h3 className="font-serif text-3xl text-[#0f172a] mb-3">{service.title}</h3>
-                <p className="text-gray-600">{service.desc}</p>
-              </div>
-              
-              {/* Column 2: Image Placeholder (New block) */}
-              <div className="h-full flex items-center justify-center py-4 md:py-0">
-                  <img 
-                    src={service.image} 
-                    alt={`Illustration for ${service.title}`}
-                    className="w-full h-32 object-cover rounded-lg shadow-md"
-                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/400x200/0f172a/d4af37?text=SERVICE+IMAGE"; }}
-                  />
-              </div>
-              
-              {/* Column 3: Duration and Get Quote Button (Combined) */}
-              <div className="md:pt-0 border-t md:border-t-0 border-gray-100 md:pl-8 space-y-4">
-                
-                {/* Duration Block */}
-                <div>
-                  <div className="flex items-center text-[#d4af37] mb-2">
-                    <Clock size={20} className="mr-2" />
-                    <span className="font-bold text-sm uppercase tracking-wider">Estimated Duration</span>
-                  </div>
-                  <p className="text-xl font-semibold text-[#0f172a]">{service.duration}</p>
+              {/* Image Section */}
+              <div className="relative h-64 overflow-hidden">
+                <img 
+                  src={service.image} 
+                  alt={service.title}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/600x400/0f172a/d4af37?text=${service.title.replace(' ', '+')}`; }}
+                />
+                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-md text-[#d4af37]">
+                  <service.icon size={24} />
                 </div>
+              </div>
 
-                {/* Add the 'Get Quote' button here, below the duration */}
-                <Link href="/schedule" className="inline-flex items-center bg-[#0f172a] text-white font-bold py-2 px-6 rounded-lg text-base hover:bg-[#d4af37] hover:text-[#0f172a] transition duration-300 shadow-lg">
-                  <MessageSquare size={20} className="mr-2" />
-                  Get Custom Quote
-                </Link>
+              {/* Content Section */}
+              <div className="p-8 flex flex-col flex-grow">
+                <h3 className="font-serif text-2xl text-[#0f172a] mb-4">{service.title}</h3>
+                <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow">
+                  {service.desc}
+                </p>
+                
+                <div className="flex items-center justify-between pt-6 border-t border-gray-50">
+                   <div className="flex flex-col">
+                      <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Availability</span>
+                      <span className="text-[#0f172a] font-bold">{service.duration}</span>
+                   </div>
+                   <Link href={service.link} className="bg-[#d4af37] text-white p-2 rounded-full hover:bg-[#0f172a] transition-colors">
+                      <ChevronRight size={20} />
+                   </Link>
+                </div>
               </div>
             </div>
           ))}
         </div>
-      </section>
-
-      {/* Why Choose Us Section */}
-      <section className="bg-white py-16 px-6">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="font-serif text-3xl text-[#0f172a] text-center mb-10">Why Elite Polish?</h2>
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            {featuresList.map((feature, index) => (
-              <div key={index} className="p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
-                <feature.icon size={36} className="text-[#d4af37] mx-auto mb-4" />
-                <p className="font-semibold text-lg text-[#0f172a]">{feature.text}</p>
-              </div>
-            ))}
-          </div>
+        
+        {/* Centered CTA after Grid */}
+        <div className="mt-16 text-center">
+            <Link href="/contact" className="inline-flex items-center bg-[#0f172a] text-white font-bold py-4 px-10 rounded-full text-lg hover:bg-[#d4af37] hover:text-[#0f172a] transition duration-300 shadow-xl">
+              <MessageSquare size={20} className="mr-2" />
+              Get a Customized Estimate
+            </Link>
         </div>
       </section>
-          <Footer/>
+
+      {/* Trust Bar */}
+      <section className="bg-white py-16 px-6 border-t border-gray-100">
+        <div className="max-w-7xl mx-auto flex flex-wrap justify-around gap-8 text-center">
+            <div className="flex flex-col items-center">
+                <Heart size={32} className="text-[#d4af37] mb-2"/>
+                <span className="text-xs font-bold uppercase tracking-widest">Custom Checklists</span>
+            </div>
+            <div className="flex flex-col items-center">
+                <Sun size={32} className="text-[#d4af37] mb-2"/>
+                <span className="text-xs font-bold uppercase tracking-widest">Eco-Friendly</span>
+            </div>
+            <div className="flex flex-col items-center">
+                <Diamond size={32} className="text-[#d4af37] mb-2"/>
+                <span className="text-xs font-bold uppercase tracking-widest">Vetted Teams</span>
+            </div>
+        </div>
+      </section>
+
+      <Footer/>
     </main>
   );
 }
