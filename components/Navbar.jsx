@@ -30,7 +30,7 @@ export default function Navbar() {
     {
       title: 'House Cleaning',
       path: '/services/house-cleaning',
-      subs: ['Standard Maintenance', 'Deep Cleaning', 'Airbnb Turnovers', 'Move-In/Out']
+      subs: ['Standard Maintenance', 'Deep Cleaning', 'Airbnb Turnovers', 'move-in-move-out']
     },
     {
       title: 'Office Cleaning',

@@ -3,14 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, CheckCircle, Clock, Calendar, Zap, AlertTriangle, Loader2 } from 'lucide-react';
 import {API_BASE_URL} from '../config/config'
+import Navbar from './Navbar';
 
 
 const BOOKING_API = `${API_BASE_URL}/booking/add`;
 
 const SERVICES = [
-    { id: 'S01', name: 'House Cleaning', description: 'Deep clean for homes needing extra attention.', price: '$350+' },
-    { id: 'S02', name: 'Office Cleaning', description: 'Window washing and gutter cleaning.', price: '$200+' },
-    { id: 'S03', name: 'Special Cleaning', description: 'Construction Debris, Move-in/Move-out and other cleaning service.', price: '$450+' },
+    { id: 'S01', name: 'Standard Maintenance', description: 'Recurring upkeep for pristine homes.' },
+    { id: 'S02', name: 'Deep Cleaning', description: 'Top-to-bottom restoration and sanitization.' },
+    { id: 'S03', name: 'Move-In / Move-Out', description: 'Total-void cleaning for property transitions.' },
+    { id: 'S04', name: 'Airbnb Turnover', description: '5-star hospitality cleaning and staging.' },
+    { id: 'S05', name: 'Medical Office', description: 'Clinical-grade sanitation and disinfection.' },
+    { id: 'S06', name: 'Post-Construction', description: 'Heavy-duty dust and debris removal.' },
+    { id: 'S07', name: 'Handyman Services', description: 'Professional repairs, mounting, and assembly.' },
+    { id: 'S08', name: 'Gutter Cleaning', description: 'Safety-first debris removal and drainage check.' },
+    { id: 'S09', name: 'Pressure Washing', description: 'Soft-wash and high-pressure exterior restoration.' },
 ];
 
 const TIME_SLOTS = [
@@ -170,10 +177,10 @@ const Step3Details = ({ bookingData, updateData, setStep, handleSubmit, isLoadin
 
     return (
       <div className="space-y-6">
-        <h3 className="text-3xl font-serif text-[#0f172a]">3. Your Details</h3>
+        <h3 className="text-3xl font-serif text-[#0f172a]">3. Your Details & Project Scope</h3>
         <div className="grid md:grid-cols-2 gap-6 font-sans">
           <div>
-            <label className="block text-sm font-medium mb-2">Full Name</label>
+            <label className="block text-sm font-medium mb-2 text-slate-700">Full Name</label>
             <input
               type="text"
               value={bookingData.name}
@@ -184,7 +191,7 @@ const Step3Details = ({ bookingData, updateData, setStep, handleSubmit, isLoadin
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Phone Number</label>
+            <label className="block text-sm font-medium mb-2 text-slate-700">Phone Number</label>
             <input
               type="tel"
               value={bookingData.phone}
@@ -196,7 +203,7 @@ const Step3Details = ({ bookingData, updateData, setStep, handleSubmit, isLoadin
           </div>
         </div>
         <div className="font-sans">
-          <label className="block text-sm font-medium mb-2">Service Address</label>
+          <label className="block text-sm font-medium mb-2 text-slate-700">Service Address</label>
           <input
             type="text"
             value={bookingData.address}
@@ -206,6 +213,20 @@ const Step3Details = ({ bookingData, updateData, setStep, handleSubmit, isLoadin
             disabled={isLoading}
           />
         </div>
+
+        {/* --- NEW FIELD: PROJECT NOTES --- */}
+        <div className="font-sans">
+          <label className="block text-sm font-medium mb-2 text-slate-700 font-bold">Project Details (Optional)</label>
+          <p className="text-xs text-gray-500 mb-2">Please describe the specific tasks (e.g., "Mounting 65 inch TV" or "3-bedroom post-reno clean")</p>
+          <textarea
+            value={bookingData.notes || ''}
+            onChange={(e) => updateData('notes', e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg h-32 focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37]"
+            placeholder="Tell us more about the job to help us provide an accurate quote..."
+            disabled={isLoading}
+          />
+        </div>
+
         <div className="flex justify-between pt-4">
           <button
             className="text-gray-600 hover:text-[#0f172a] font-bold transition disabled:opacity-50"
@@ -222,10 +243,10 @@ const Step3Details = ({ bookingData, updateData, setStep, handleSubmit, isLoadin
             {isLoading ? (
                 <>
                     <Loader2 size={18} className="animate-spin mr-2" />
-                    Submitting...
+                    Processing...
                 </>
             ) : (
-                'Confirm & Request Quote'
+                'Request My Quote'
             )}
           </button>
         </div>
@@ -258,7 +279,7 @@ const Step4Confirmation = ({ bookingData }) => {
                     <p className="flex justify-between"><strong>Contact:</strong> <span>{phone}</span></p>
                 </div>
             </div>
-            <p className="text-sm text-gray-500 pt-4">The booking data was successfully sent to the backend (check console for payload log).</p>
+            <p className="text-sm text-gray-500 pt-4">The booking data was successfully sent.</p>
         </div>
     );
 };
@@ -377,6 +398,7 @@ export default function BookingApp() {
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-8 lg:p-12 font-sans">
+            <Navbar/>
             <MessageModal 
                 message={errorMessage} 
                 type="error" 
